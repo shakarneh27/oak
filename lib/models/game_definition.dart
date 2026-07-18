@@ -41,7 +41,11 @@ class Unit {
   final String nameAr;
   final int sortOrder;
 
-  const Unit({required this.unitKey, required this.nameAr, required this.sortOrder});
+  const Unit({
+    required this.unitKey,
+    required this.nameAr,
+    required this.sortOrder,
+  });
 
   factory Unit.fromMap(Map<String, dynamic> map) {
     return Unit(

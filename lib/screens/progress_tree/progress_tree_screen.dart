@@ -38,7 +38,10 @@ class ProgressTreeScreen extends ConsumerWidget {
                   color: OakColors.leafDark,
                 ),
                 const SizedBox(height: 16),
-                Text('مرحلة النمو: $stage', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'مرحلة النمو: $stage',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 8),
                 Text('أوراق السنديانة: $leaves 🍃'),
                 const SizedBox(height: 8),
@@ -46,7 +49,9 @@ class ProgressTreeScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 Wrap(
                   spacing: 8,
-                  children: (progress?.badgesUnlocked ?? const []).map((b) => Chip(label: Text(b))).toList(),
+                  children: (progress?.badgesUnlocked ?? const [])
+                      .map((b) => Chip(label: Text(b)))
+                      .toList(),
                 ),
               ],
             ),

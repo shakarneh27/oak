@@ -8,7 +8,9 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
   @override
   Future<AppSettings> build() => ref.watch(settingsServiceProvider).load();
 
-  Future<void> updateSettings(AppSettings Function(AppSettings) transform) async {
+  Future<void> updateSettings(
+    AppSettings Function(AppSettings) transform,
+  ) async {
     final current = state.valueOrNull ?? AppSettings.defaults;
     final updated = transform(current);
     state = AsyncData(updated);
@@ -16,4 +18,6 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
   }
 }
 
-final settingsProvider = AsyncNotifierProvider<SettingsNotifier, AppSettings>(SettingsNotifier.new);
+final settingsProvider = AsyncNotifierProvider<SettingsNotifier, AppSettings>(
+  SettingsNotifier.new,
+);

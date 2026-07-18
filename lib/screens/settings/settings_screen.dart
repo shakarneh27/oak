@@ -39,19 +39,23 @@ class SettingsScreen extends ConsumerWidget {
               title: const Text('الثيم الداكن'),
               secondary: const Icon(Icons.dark_mode_outlined),
               value: settings.darkMode,
-              onChanged: (v) => notifier.updateSettings((s) => s.copyWith(darkMode: v)),
+              onChanged: (v) =>
+                  notifier.updateSettings((s) => s.copyWith(darkMode: v)),
             ),
             SwitchListTile(
               title: const Text('الصوت'),
               secondary: const Icon(Icons.volume_up_outlined),
               value: settings.soundEnabled,
-              onChanged: (v) => notifier.updateSettings((s) => s.copyWith(soundEnabled: v)),
+              onChanged: (v) =>
+                  notifier.updateSettings((s) => s.copyWith(soundEnabled: v)),
             ),
             SwitchListTile(
               title: const Text('تفعيل المحلل الصوتي بالذكاء الاصطناعي'),
               secondary: const Icon(Icons.mic_none_outlined),
               value: settings.aiVoiceAnalyzerEnabled,
-              onChanged: (v) => notifier.updateSettings((s) => s.copyWith(aiVoiceAnalyzerEnabled: v)),
+              onChanged: (v) => notifier.updateSettings(
+                (s) => s.copyWith(aiVoiceAnalyzerEnabled: v),
+              ),
             ),
             const Divider(),
             ListTile(

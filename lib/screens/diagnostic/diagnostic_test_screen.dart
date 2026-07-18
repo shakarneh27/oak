@@ -35,7 +35,8 @@ class DiagnosticTestScreen extends ConsumerStatefulWidget {
   const DiagnosticTestScreen({super.key});
 
   @override
-  ConsumerState<DiagnosticTestScreen> createState() => _DiagnosticTestScreenState();
+  ConsumerState<DiagnosticTestScreen> createState() =>
+      _DiagnosticTestScreenState();
 }
 
 class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
@@ -50,15 +51,23 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
       return;
     }
     setState(() => _submitting = true);
-    final scores = {for (final l in AdaptiveLevel.values) l: _answers.where((a) => a == l).length};
-    final result = scores.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+    final scores = {
+      for (final l in AdaptiveLevel.values)
+        l: _answers.where((a) => a == l).length,
+    };
+    final result = scores.entries
+        .reduce((a, b) => a.value >= b.value ? a : b)
+        .key;
 
     final client = ref.read(supabaseClientProvider);
     final studentId = client.auth.currentUser!.id;
-    await client.from('student_progress').update({
-      'current_level': result.dbValue,
-      'updated_at': DateTime.now().toIso8601String(),
-    }).eq('student_id', studentId);
+    await client
+        .from('student_progress')
+        .update({
+          'current_level': result.dbValue,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('student_id', studentId);
 
     if (mounted) context.go('/dashboard');
   }
@@ -70,7 +79,11 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
     }
     final question = _questions[_index];
     return Scaffold(
-      appBar: AppBar(title: Text('اختبار تحديد المستوى (${_index + 1}/${_questions.length})')),
+      appBar: AppBar(
+        title: Text(
+          'اختبار تحديد المستوى (${_index + 1}/${_questions.length})',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -78,7 +91,10 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
           children: [
             LinearProgressIndicator(value: (_index) / _questions.length),
             const SizedBox(height: 24),
-            Text(question.prompt, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              question.prompt,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 24),
             for (final option in question.options)
               Padding(

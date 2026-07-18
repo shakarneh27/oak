@@ -14,21 +14,21 @@ extension AdaptiveLevelX on AdaptiveLevel {
   }
 
   String get dbValue => switch (this) {
-        AdaptiveLevel.weak => 'Weak',
-        AdaptiveLevel.medium => 'Medium',
-        AdaptiveLevel.advanced => 'Advanced',
-      };
+    AdaptiveLevel.weak => 'Weak',
+    AdaptiveLevel.medium => 'Medium',
+    AdaptiveLevel.advanced => 'Advanced',
+  };
 
   String get labelAr => switch (this) {
-        AdaptiveLevel.weak => 'ضعيف',
-        AdaptiveLevel.medium => 'متوسط',
-        AdaptiveLevel.advanced => 'متقدم',
-      };
+    AdaptiveLevel.weak => 'ضعيف',
+    AdaptiveLevel.medium => 'متوسط',
+    AdaptiveLevel.advanced => 'متقدم',
+  };
 
   /// One step down, floored at [weak].
   AdaptiveLevel get downgraded => switch (this) {
-        AdaptiveLevel.weak => AdaptiveLevel.weak,
-        AdaptiveLevel.medium => AdaptiveLevel.weak,
-        AdaptiveLevel.advanced => AdaptiveLevel.medium,
-      };
+    AdaptiveLevel.weak => AdaptiveLevel.weak,
+    AdaptiveLevel.medium => AdaptiveLevel.weak,
+    AdaptiveLevel.advanced => AdaptiveLevel.medium,
+  };
 }

@@ -20,7 +20,10 @@ class ParentDashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('لوحة ولي الأمر'),
         actions: [
-          IconButton(icon: const Icon(Icons.logout), onPressed: () => ref.read(authServiceProvider).signOut()),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => ref.read(authServiceProvider).signOut(),
+          ),
         ],
       ),
       body: ListView(
@@ -36,8 +39,11 @@ class ParentDashboardScreen extends ConsumerWidget {
                 : Column(
                     children: children.map((entry) {
                       final profile = entry['profile'] as Map<String, dynamic>;
-                      final progressMap = entry['progress'] as Map<String, dynamic>?;
-                      final progress = progressMap == null ? null : StudentProgress.fromMap(progressMap);
+                      final progressMap =
+                          entry['progress'] as Map<String, dynamic>?;
+                      final progress = progressMap == null
+                          ? null
+                          : StudentProgress.fromMap(progressMap);
                       return Card(
                         child: ListTile(
                           leading: const Icon(Icons.face_outlined),
@@ -53,7 +59,10 @@ class ParentDashboardScreen extends ConsumerWidget {
                   ),
           ),
           const SizedBox(height: 24),
-          Text('توصيات الخطة العلاجية', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'توصيات الخطة العلاجية',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           remedialAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -65,7 +74,9 @@ class ParentDashboardScreen extends ConsumerWidget {
                       return ListTile(
                         leading: const Icon(Icons.lightbulb_outline),
                         title: Text(row['action_taken']?.toString() ?? ''),
-                        subtitle: Text(row['trigger_condition']?.toString() ?? ''),
+                        subtitle: Text(
+                          row['trigger_condition']?.toString() ?? '',
+                        ),
                       );
                     }).toList(),
                   ),

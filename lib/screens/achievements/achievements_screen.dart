@@ -30,22 +30,33 @@ class AchievementsScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _StatChip(icon: Icons.eco, label: 'أوراق سنديانة', value: '${progress?.oakLeaves ?? 0}'),
-                    _StatChip(icon: Icons.emoji_events, label: 'شارات', value: '${badges.length}'),
+                    _StatChip(
+                      icon: Icons.eco,
+                      label: 'أوراق سنديانة',
+                      value: '${progress?.oakLeaves ?? 0}',
+                    ),
+                    _StatChip(
+                      icon: Icons.emoji_events,
+                      label: 'شارات',
+                      value: '${badges.length}',
+                    ),
                   ],
                 ),
               ),
               Expanded(
                 child: badges.isEmpty
-                    ? const Center(child: Text('لا شارات بعد — انطلق والعب لتحصل عليها!'))
+                    ? const Center(
+                        child: Text('لا شارات بعد — انطلق والعب لتحصل عليها!'),
+                      )
                     : GridView.builder(
                         padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 1.4,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 1.4,
+                            ),
                         itemCount: badges.length,
                         itemBuilder: (context, index) => Card(
                           child: Center(
@@ -56,7 +67,10 @@ class AchievementsScreen extends ConsumerWidget {
                                 children: [
                                   const Icon(Icons.military_tech, size: 32),
                                   const SizedBox(height: 8),
-                                  Text(badges[index], textAlign: TextAlign.center),
+                                  Text(
+                                    badges[index],
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ],
                               ),
                             ),
@@ -76,7 +90,11 @@ class _StatChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _StatChip({required this.icon, required this.label, required this.value});
+  const _StatChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {

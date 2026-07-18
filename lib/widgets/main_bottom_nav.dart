@@ -17,12 +17,15 @@ class MainBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final index = _tabs.indexWhere((t) => t.$1 == currentPath).clamp(0, _tabs.length - 1);
+    final index = _tabs
+        .indexWhere((t) => t.$1 == currentPath)
+        .clamp(0, _tabs.length - 1);
     return NavigationBar(
       selectedIndex: index,
       onDestinationSelected: (i) => context.go(_tabs[i].$1),
       destinations: [
-        for (final tab in _tabs) NavigationDestination(icon: Icon(tab.$2), label: tab.$3),
+        for (final tab in _tabs)
+          NavigationDestination(icon: Icon(tab.$2), label: tab.$3),
       ],
     );
   }

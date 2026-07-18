@@ -33,8 +33,9 @@ class StatInfo {
 /// render it — editing marketing text never touches layout code.
 abstract final class LandingContent {
   static const String heroTitle = 'السنديانة الرقمية';
+  static const String subjectBadge = 'علوم الصف الرابع — الفصل الثاني';
   static const String heroSubtitle =
-      'منصة تعليمية تكيفية لمادة العلوم للمرحلة الأساسية — '
+      'منصة تعليمية تكيفية لمادة العلوم للصف الرابع الأساسي — '
       'تحوّل دروس المنهاج الفلسطيني إلى ألعاب تفاعلية تنمو مع مستوى كل طالب، '
       'وتبقي المعلم وولي الأمر في الصورة لحظة بلحظة.';
 
@@ -117,5 +118,5 @@ abstract final class LandingContent {
   ];
 
   static const String footerNote =
-      'مشروع تعليمي لخدمة طلبة المرحلة الأساسية — السنديانة الرقمية';
+      'مشروع تعليمي لخدمة طلبة المرحلة الأساسية — السنديانة الرقمية © 2026';
 }

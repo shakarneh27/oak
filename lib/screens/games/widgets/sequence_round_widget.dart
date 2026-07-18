@@ -10,7 +10,11 @@ class SequenceRoundWidget extends StatefulWidget {
   final List<String> correctOrder;
   final ValueChanged<bool> onCheck;
 
-  const SequenceRoundWidget({super.key, required this.correctOrder, required this.onCheck});
+  const SequenceRoundWidget({
+    super.key,
+    required this.correctOrder,
+    required this.onCheck,
+  });
 
   @override
   State<SequenceRoundWidget> createState() => _SequenceRoundWidgetState();
@@ -51,7 +55,10 @@ class _SequenceRoundWidgetState extends State<SequenceRoundWidget> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('رتّب العناصر بالسحب من الأعلى إلى الأسفل بالترتيب الصحيح', style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          'رتّب العناصر بالسحب من الأعلى إلى الأسفل بالترتيب الصحيح',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
         const SizedBox(height: 12),
         ReorderableListView(
           shrinkWrap: true,

@@ -20,7 +20,11 @@ class AuthService {
   Future<AppUser?> loadCurrentProfile() async {
     final user = _client.auth.currentUser;
     if (user == null) return null;
-    final row = await _client.from('profiles').select().eq('id', user.id).maybeSingle();
+    final row = await _client
+        .from('profiles')
+        .select()
+        .eq('id', user.id)
+        .maybeSingle();
     if (row == null) return null;
     return AppUser.fromMap(row);
   }
@@ -41,7 +45,12 @@ class AuthService {
     if (userId == null) {
       throw StateError('لم يتم إنشاء المستخدم، الرجاء المحاولة مجدداً');
     }
-    final appUser = AppUser(id: userId, name: name, role: role, classroom: classroom);
+    final appUser = AppUser(
+      id: userId,
+      name: name,
+      role: role,
+      classroom: classroom,
+    );
     await _client.from('profiles').insert(appUser.toInsertMap());
     if (role == UserRole.student) {
       await _client.from('student_progress').insert({'student_id': userId});

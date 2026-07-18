@@ -45,13 +45,22 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
     try {
       final client = ref.read(supabaseClientProvider);
       final studentId = client.auth.currentUser!.id;
-      final progressRow =
-          await client.from('student_progress').select('current_level').eq('student_id', studentId).maybeSingle();
+      final progressRow = await client
+          .from('student_progress')
+          .select('current_level')
+          .eq('student_id', studentId)
+          .maybeSingle();
       final level = progressRow == null
           ? AdaptiveLevel.weak
-          : AdaptiveLevelX.fromString(progressRow['current_level'] as String? ?? 'Weak');
+          : AdaptiveLevelX.fromString(
+              progressRow['current_level'] as String? ?? 'Weak',
+            );
       final engine = ref.read(remedialEngineProvider);
-      final session = await engine.startSession(studentId: studentId, gameKey: widget.gameKey, level: level);
+      final session = await engine.startSession(
+        studentId: studentId,
+        gameKey: widget.gameKey,
+        level: level,
+      );
       setState(() {
         _session = session;
         _loading = false;
@@ -107,7 +116,8 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
           title: 'أحسنت! 🌟',
           message: outcome.message,
           confirmLabel: 'إلى التحدي الأصلي',
-          onConfirm: () => _restartAtLevel(_originalLevel ?? AdaptiveLevel.weak),
+          onConfirm: () =>
+              _restartAtLevel(_originalLevel ?? AdaptiveLevel.weak),
         );
         break;
     }
@@ -155,7 +165,9 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
 
   Future<void> _showCompletionDialog() async {
     final client = ref.read(supabaseClientProvider);
-    await ref.read(remedialEngineProvider).awardGameReward(
+    await ref
+        .read(remedialEngineProvider)
+        .awardGameReward(
           client.auth.currentUser!.id,
           points: _game.pointsReward,
           badge: _game.badgeReward,
@@ -165,8 +177,10 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('أحسنت! 🎉'),
-        content: Text('أنجزت لعبة "${_game.gameName}" وحصلت على +${_game.pointsReward} نقطة'
-            '${_game.badgeReward != null ? ' و "${_game.badgeReward}"' : ''}!'),
+        content: Text(
+          'أنجزت لعبة "${_game.gameName}" وحصلت على +${_game.pointsReward} نقطة'
+          '${_game.badgeReward != null ? ' و "${_game.badgeReward}"' : ''}!',
+        ),
         actions: [
           FilledButton(
             onPressed: () {
@@ -207,13 +221,17 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 2)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (_error != null) return Scaffold(body: Center(child: Text('تعذر بدء اللعبة: $_error')));
+    if (_loading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_error != null)
+      return Scaffold(body: Center(child: Text('تعذر بدء اللعبة: $_error')));
 
     final session = _session!;
     return Scaffold(
@@ -225,7 +243,9 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
             child: Center(
               child: Chip(
                 label: Text(session.level.labelAr),
-                backgroundColor: session.isRemediation ? Colors.amber.withValues(alpha: 0.3) : null,
+                backgroundColor: session.isRemediation
+                    ? Colors.amber.withValues(alpha: 0.3)
+                    : null,
               ),
             ),
           ),
@@ -239,11 +259,19 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
             if (session.isRemediation)
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
-                child: Text('🌱 جولة مساعدة: لنبنِ الأساس قبل العودة للتحدي الأصلي', textAlign: TextAlign.center),
+                child: Text(
+                  '🌱 جولة مساعدة: لنبنِ الأساس قبل العودة للتحدي الأصلي',
+                  textAlign: TextAlign.center,
+                ),
               ),
-            Text('المحاولات: ${session.attemptsCount}', style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              'المحاولات: ${session.attemptsCount}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 16),
-            Expanded(child: SingleChildScrollView(child: _buildMechanic(session))),
+            Expanded(
+              child: SingleChildScrollView(child: _buildMechanic(session)),
+            ),
           ],
         ),
       ),
@@ -254,14 +282,26 @@ class _GamePlayerScreenState extends ConsumerState<GamePlayerScreen> {
     switch (_config.type) {
       case GameInteractionType.match:
         final items = _config.matchItemsByLevel![session.level]!;
-        return MatchRoundWidget(key: ValueKey(session.level), items: items, onCheck: _handleAttempt);
+        return MatchRoundWidget(
+          key: ValueKey(session.level),
+          items: items,
+          onCheck: _handleAttempt,
+        );
       case GameInteractionType.sequence:
         final order = _config.sequenceItemsByLevel![session.level]!;
-        return SequenceRoundWidget(key: ValueKey(session.level), correctOrder: order, onCheck: _handleAttempt);
+        return SequenceRoundWidget(
+          key: ValueKey(session.level),
+          correctOrder: order,
+          onCheck: _handleAttempt,
+        );
       case GameInteractionType.mcq:
         final questions = _config.mcqQuestionsByLevel![session.level]!;
         final question = questions[_mcqIndex.clamp(0, questions.length - 1)];
-        return McqRoundWidget(key: ValueKey('${session.level}-$_mcqIndex'), question: question, onAnswer: _handleAttempt);
+        return McqRoundWidget(
+          key: ValueKey('${session.level}-$_mcqIndex'),
+          question: question,
+          onAnswer: _handleAttempt,
+        );
     }
   }
 }

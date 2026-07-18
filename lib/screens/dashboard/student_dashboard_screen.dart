@@ -24,7 +24,8 @@ class StudentDashboardScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: profileAsync.when(
-          data: (user) => Text(user == null ? 'مرحباً' : 'مرحباً، ${user.name} 🌳'),
+          data: (user) =>
+              Text(user == null ? 'مرحباً' : 'مرحباً، ${user.name} 🌳'),
           loading: () => const Text('مرحباً'),
           error: (_, _) => const Text('مرحباً'),
         ),
@@ -71,7 +72,10 @@ class StudentDashboardScreen extends ConsumerWidget {
               label: const Text('انطلق الآن'),
             ),
             const SizedBox(height: 24),
-            Text('إشعارات اليوم', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'إشعارات اليوم',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             announcementsAsync.when(
               data: (rows) => rows.isEmpty
@@ -79,7 +83,9 @@ class StudentDashboardScreen extends ConsumerWidget {
                   : Column(
                       children: rows.reversed.take(10).map((row) {
                         return ListTile(
-                          leading: const Icon(Icons.notifications_active_outlined),
+                          leading: const Icon(
+                            Icons.notifications_active_outlined,
+                          ),
                           title: Text(row['event_type']?.toString() ?? ''),
                           subtitle: Text(row['created_at']?.toString() ?? ''),
                         );

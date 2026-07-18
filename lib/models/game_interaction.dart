@@ -29,17 +29,17 @@ class GameInteractionConfig {
   final Map<AdaptiveLevel, List<McqQuestion>>? mcqQuestionsByLevel;
 
   const GameInteractionConfig.match(this.matchItemsByLevel)
-      : type = GameInteractionType.match,
-        sequenceItemsByLevel = null,
-        mcqQuestionsByLevel = null;
+    : type = GameInteractionType.match,
+      sequenceItemsByLevel = null,
+      mcqQuestionsByLevel = null;
 
   const GameInteractionConfig.sequence(this.sequenceItemsByLevel)
-      : type = GameInteractionType.sequence,
-        matchItemsByLevel = null,
-        mcqQuestionsByLevel = null;
+    : type = GameInteractionType.sequence,
+      matchItemsByLevel = null,
+      mcqQuestionsByLevel = null;
 
   const GameInteractionConfig.mcq(this.mcqQuestionsByLevel)
-      : type = GameInteractionType.mcq,
-        matchItemsByLevel = null,
-        sequenceItemsByLevel = null;
+    : type = GameInteractionType.mcq,
+      matchItemsByLevel = null,
+      sequenceItemsByLevel = null;
 }

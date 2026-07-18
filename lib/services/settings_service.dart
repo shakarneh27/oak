@@ -11,13 +11,22 @@ class AppSettings {
     required this.aiVoiceAnalyzerEnabled,
   });
 
-  static const defaults = AppSettings(darkMode: false, soundEnabled: true, aiVoiceAnalyzerEnabled: true);
+  static const defaults = AppSettings(
+    darkMode: false,
+    soundEnabled: true,
+    aiVoiceAnalyzerEnabled: true,
+  );
 
-  AppSettings copyWith({bool? darkMode, bool? soundEnabled, bool? aiVoiceAnalyzerEnabled}) {
+  AppSettings copyWith({
+    bool? darkMode,
+    bool? soundEnabled,
+    bool? aiVoiceAnalyzerEnabled,
+  }) {
     return AppSettings(
       darkMode: darkMode ?? this.darkMode,
       soundEnabled: soundEnabled ?? this.soundEnabled,
-      aiVoiceAnalyzerEnabled: aiVoiceAnalyzerEnabled ?? this.aiVoiceAnalyzerEnabled,
+      aiVoiceAnalyzerEnabled:
+          aiVoiceAnalyzerEnabled ?? this.aiVoiceAnalyzerEnabled,
     );
   }
 }
@@ -33,8 +42,11 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     return AppSettings(
       darkMode: prefs.getBool(_darkModeKey) ?? AppSettings.defaults.darkMode,
-      soundEnabled: prefs.getBool(_soundKey) ?? AppSettings.defaults.soundEnabled,
-      aiVoiceAnalyzerEnabled: prefs.getBool(_aiVoiceKey) ?? AppSettings.defaults.aiVoiceAnalyzerEnabled,
+      soundEnabled:
+          prefs.getBool(_soundKey) ?? AppSettings.defaults.soundEnabled,
+      aiVoiceAnalyzerEnabled:
+          prefs.getBool(_aiVoiceKey) ??
+          AppSettings.defaults.aiVoiceAnalyzerEnabled,
     );
   }
 

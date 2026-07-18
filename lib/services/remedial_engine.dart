@@ -62,14 +62,18 @@ class RemedialEngine {
           'game_key': gameKey,
           'level': level.dbValue,
           'is_remediation': isRemediation,
-          if (remediationOfGameKey != null) 'remediation_of_game_key': remediationOfGameKey,
+          if (remediationOfGameKey != null)
+            'remediation_of_game_key': remediationOfGameKey,
         })
         .select()
         .single();
     return GameSession.fromMap(row);
   }
 
-  Future<RemedialOutcome> submitAttempt(GameSession session, {required bool success}) async {
+  Future<RemedialOutcome> submitAttempt(
+    GameSession session, {
+    required bool success,
+  }) async {
     if (success) {
       return _handleSuccess(session);
     }
@@ -90,9 +94,13 @@ class RemedialEngine {
         session: session,
         eventType: 'remediation_passed',
         triggerCondition: 'تجاوز اللعبة الأسهل بنجاح 100%',
-        actionTaken: 'إعادة توجيه للعبة الأصلية مع سيناريو مختلف ومنح شارة المحاولة الشجاعة',
+        actionTaken:
+            'إعادة توجيه للعبة الأصلية مع سيناريو مختلف ومنح شارة المحاولة الشجاعة',
       );
-      await _awardBadgeAndGrowTree(session.studentId, badge: 'شارة المحاولة الشجاعة');
+      await _awardBadgeAndGrowTree(
+        session.studentId,
+        badge: 'شارة المحاولة الشجاعة',
+      );
       return RemedialOutcome(
         action: RemedialActionType.remediationPassed,
         session: updated,
@@ -106,7 +114,11 @@ class RemedialEngine {
       consecutiveFails: 0,
       status: GameSessionStatus.completed,
     );
-    return RemedialOutcome(action: RemedialActionType.none, session: updated, message: 'إجابة صحيحة!');
+    return RemedialOutcome(
+      action: RemedialActionType.none,
+      session: updated,
+      message: 'إجابة صحيحة!',
+    );
   }
 
   Future<RemedialOutcome> _handleFailure(GameSession session) async {
@@ -152,7 +164,8 @@ class RemedialEngine {
         session: session,
         eventType: 'repeated_failure',
         triggerCondition: 'الخطأ 3 مرات متتالية في نفس مستوى النشاط',
-        actionTaken: 'إيقاف مؤقت للجلسة، حفظ النقاط، وتسجيل فجوة مهارية للخلفية',
+        actionTaken:
+            'إيقاف مؤقت للجلسة، حفظ النقاط، وتسجيل فجوة مهارية للخلفية',
       );
       return RemedialOutcome(
         action: RemedialActionType.encourageAndPause,
@@ -185,8 +198,16 @@ class RemedialEngine {
       );
     }
 
-    final updated = await _updateSession(session, attemptsCount: nextAttempts, consecutiveFails: nextFails);
-    return RemedialOutcome(action: RemedialActionType.none, session: updated, message: 'حاول مجدداً، أنت قريب!');
+    final updated = await _updateSession(
+      session,
+      attemptsCount: nextAttempts,
+      consecutiveFails: nextFails,
+    );
+    return RemedialOutcome(
+      action: RemedialActionType.none,
+      session: updated,
+      message: 'حاول مجدداً، أنت قريب!',
+    );
   }
 
   Future<GameSession> _updateSession(
@@ -206,8 +227,10 @@ class RemedialEngine {
           if (status != null) 'status': status.dbValue,
           if (level != null) 'level': level.dbValue,
           if (isRemediation != null) 'is_remediation': isRemediation,
-          if (remediationOfGameKey != null) 'remediation_of_game_key': remediationOfGameKey,
-          if (status != null && status != GameSessionStatus.inProgress) 'ended_at': DateTime.now().toIso8601String(),
+          if (remediationOfGameKey != null)
+            'remediation_of_game_key': remediationOfGameKey,
+          if (status != null && status != GameSessionStatus.inProgress)
+            'ended_at': DateTime.now().toIso8601String(),
         })
         .eq('session_id', session.sessionId)
         .select()
@@ -230,37 +253,55 @@ class RemedialEngine {
     });
   }
 
-  Future<void> _awardBadgeAndGrowTree(String studentId, {required String badge, int points = 0}) async {
+  Future<void> _awardBadgeAndGrowTree(
+    String studentId, {
+    required String badge,
+    int points = 0,
+  }) async {
     final row = await _client
         .from('student_progress')
         .select()
         .eq('student_id', studentId)
         .single();
-    final badges = List<String>.from(row['badges_unlocked'] as List<dynamic>? ?? const []);
+    final badges = List<String>.from(
+      row['badges_unlocked'] as List<dynamic>? ?? const [],
+    );
     if (!badges.contains(badge)) badges.add(badge);
-    await _client.from('student_progress').update({
-      'badges_unlocked': badges,
-      'oak_leaves': ((row['oak_leaves'] as num?) ?? 0) + points,
-      'tree_growth_stage': ((row['tree_growth_stage'] as num?) ?? 0) + 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    }).eq('student_id', studentId);
+    await _client
+        .from('student_progress')
+        .update({
+          'badges_unlocked': badges,
+          'oak_leaves': ((row['oak_leaves'] as num?) ?? 0) + points,
+          'tree_growth_stage': ((row['tree_growth_stage'] as num?) ?? 0) + 1,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('student_id', studentId);
   }
 
   /// Called by the generic game shell whenever a normal (non-remediation)
   /// session completes successfully, to grant its listed points/badge.
-  Future<void> awardGameReward(String studentId, {required int points, String? badge}) async {
+  Future<void> awardGameReward(
+    String studentId, {
+    required int points,
+    String? badge,
+  }) async {
     final row = await _client
         .from('student_progress')
         .select()
         .eq('student_id', studentId)
         .single();
-    final badges = List<String>.from(row['badges_unlocked'] as List<dynamic>? ?? const []);
+    final badges = List<String>.from(
+      row['badges_unlocked'] as List<dynamic>? ?? const [],
+    );
     if (badge != null && !badges.contains(badge)) badges.add(badge);
-    await _client.from('student_progress').update({
-      'badges_unlocked': badges,
-      'oak_leaves': ((row['oak_leaves'] as num?) ?? 0) + points,
-      'tree_growth_stage': ((row['tree_growth_stage'] as num?) ?? 0) + 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    }).eq('student_id', studentId);
+    await _client
+        .from('student_progress')
+        .update({
+          'badges_unlocked': badges,
+          'oak_leaves': ((row['oak_leaves'] as num?) ?? 0) + points,
+          'tree_growth_stage': ((row['tree_growth_stage'] as num?) ?? 0) + 1,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('student_id', studentId);
   }
 }

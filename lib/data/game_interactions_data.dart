@@ -80,10 +80,7 @@ final Map<String, GameInteractionConfig> kGameInteractions = {
     ],
   }),
   'four_seasons': const GameInteractionConfig.match({
-    AdaptiveLevel.weak: [
-      MatchItem('🌸', 'الربيع'),
-      MatchItem('☀️', 'الصيف'),
-    ],
+    AdaptiveLevel.weak: [MatchItem('🌸', 'الربيع'), MatchItem('☀️', 'الصيف')],
     AdaptiveLevel.medium: [
       MatchItem('🍂', 'الخريف'),
       MatchItem('❄️', 'الشتاء'),
@@ -117,16 +114,35 @@ final Map<String, GameInteractionConfig> kGameInteractions = {
   'planet_order': const GameInteractionConfig.sequence({
     AdaptiveLevel.weak: ['☀️ الشمس', '☿️ عطارد', '🌍 الأرض'],
     AdaptiveLevel.medium: ['☿️ عطارد', '♀️ الزهرة', '🌍 الأرض', '♂️ المريخ'],
-    AdaptiveLevel.advanced: ['☿️ عطارد', '♀️ الزهرة', '🌍 الأرض', '♂️ المريخ', '🪐 المشتري', '🪐 زحل'],
+    AdaptiveLevel.advanced: [
+      '☿️ عطارد',
+      '♀️ الزهرة',
+      '🌍 الأرض',
+      '♂️ المريخ',
+      '🪐 المشتري',
+      '🪐 زحل',
+    ],
   }),
   'planet_race': const GameInteractionConfig.sequence({
     AdaptiveLevel.weak: ['☿️ عطارد', '🌍 الأرض'],
     AdaptiveLevel.medium: ['☿️ عطارد', '♀️ الزهرة', '🌍 الأرض', '♂️ المريخ'],
-    AdaptiveLevel.advanced: ['☿️ عطارد', '♀️ الزهرة', '🌍 الأرض', '♂️ المريخ', '🪐 المشتري'],
+    AdaptiveLevel.advanced: [
+      '☿️ عطارد',
+      '♀️ الزهرة',
+      '🌍 الأرض',
+      '♂️ المريخ',
+      '🪐 المشتري',
+    ],
   }),
   'build_solar_system': const GameInteractionConfig.sequence({
     AdaptiveLevel.weak: ['☀️ الشمس (الأكبر)', '🪐 المشتري', '🌍 الأرض'],
-    AdaptiveLevel.medium: ['☀️ الشمس', '🪐 المشتري', '🪐 زحل', '🌍 الأرض', '☿️ عطارد (الأصغر)'],
+    AdaptiveLevel.medium: [
+      '☀️ الشمس',
+      '🪐 المشتري',
+      '🪐 زحل',
+      '🌍 الأرض',
+      '☿️ عطارد (الأصغر)',
+    ],
     AdaptiveLevel.advanced: [
       '☀️ الشمس',
       '🪐 المشتري',
@@ -140,17 +156,34 @@ final Map<String, GameInteractionConfig> kGameInteractions = {
   'build_the_chain': const GameInteractionConfig.sequence({
     AdaptiveLevel.weak: ['🌱 نبات', '🦗 جراد', '🐸 ضفدع'],
     AdaptiveLevel.medium: ['🌱 نبات', '🦗 جراد', '🐸 ضفدع', '🐍 أفعى'],
-    AdaptiveLevel.advanced: ['🌱 نبات', '🦗 جراد', '🐸 ضفدع', '🐍 أفعى', '🦅 صقر'],
+    AdaptiveLevel.advanced: [
+      '🌱 نبات',
+      '🦗 جراد',
+      '🐸 ضفدع',
+      '🐍 أفعى',
+      '🦅 صقر',
+    ],
   }),
   'beam_maze': const GameInteractionConfig.sequence({
     AdaptiveLevel.weak: ['🔦 المصدر', '🎯 الهدف'],
     AdaptiveLevel.medium: ['🔦 المصدر', '🪞 مرآة 90°', '🎯 الهدف'],
-    AdaptiveLevel.advanced: ['🔦 المصدر', '🪞 مرآة 1', '🪞 مرآة 2', '🪞 مرآة 3', '🎯 الهدف'],
+    AdaptiveLevel.advanced: [
+      '🔦 المصدر',
+      '🪞 مرآة 1',
+      '🪞 مرآة 2',
+      '🪞 مرآة 3',
+      '🎯 الهدف',
+    ],
   }),
   'move_the_bodies': const GameInteractionConfig.sequence({
     AdaptiveLevel.weak: ['☀️ الشمس', '🌍 الأرض', '🌕 القمر'],
     AdaptiveLevel.medium: ['☀️ الشمس', '🌍 الأرض', '🌑 القمر (كسوف)'],
-    AdaptiveLevel.advanced: ['☀️ الشمس', '🌑 القمر', '🌍 الأرض', '🌑 ظل الأرض (خسوف)'],
+    AdaptiveLevel.advanced: [
+      '☀️ الشمس',
+      '🌑 القمر',
+      '🌍 الأرض',
+      '🌑 ظل الأرض (خسوف)',
+    ],
   }),
   'weather_expert_challenge': const GameInteractionConfig.mcq({
     AdaptiveLevel.weak: [
@@ -158,9 +191,21 @@ final Map<String, GameInteractionConfig> kGameInteractions = {
       McqQuestion('ما هي أداة قياس الحرارة؟', ['ترمومتر', 'مظلة', 'كتاب'], 0),
     ],
     AdaptiveLevel.medium: [
-      McqQuestion('ماذا نسمي الجو الغائم مع مطر خفيف؟', ['ممطر جزئياً', 'مشمس تماماً', 'صقيع'], 0),
-      McqQuestion('أي أداة تقيس اتجاه الرياح؟', ['دوارة الرياح', 'الترمومتر', 'المظلة'], 0),
-      McqQuestion('ماذا يقيس مقياس هطول الأمطار؟', ['كمية المطر', 'درجة الحرارة', 'سرعة الرياح'], 0),
+      McqQuestion('ماذا نسمي الجو الغائم مع مطر خفيف؟', [
+        'ممطر جزئياً',
+        'مشمس تماماً',
+        'صقيع',
+      ], 0),
+      McqQuestion('أي أداة تقيس اتجاه الرياح؟', [
+        'دوارة الرياح',
+        'الترمومتر',
+        'المظلة',
+      ], 0),
+      McqQuestion('ماذا يقيس مقياس هطول الأمطار؟', [
+        'كمية المطر',
+        'درجة الحرارة',
+        'سرعة الرياح',
+      ], 0),
     ],
     AdaptiveLevel.advanced: [
       McqQuestion(
@@ -168,47 +213,107 @@ final Map<String, GameInteractionConfig> kGameInteractions = {
         ['عاصفة رعدية', 'موجة حر', 'جفاف'],
         0,
       ),
-      McqQuestion('ما العلاقة بين الضغط الجوي المنخفض والطقس؟', ['غالباً يرافقه طقس غير مستقر', 'دائماً طقس صافٍ', 'لا علاقة'], 0),
-      McqQuestion('لماذا يُستخدم القمر الصناعي في التنبؤ الجوي؟', ['لرصد حركة السحب والعواصف', 'لقياس الحرارة فقط', 'لا فائدة منه'], 0),
+      McqQuestion('ما العلاقة بين الضغط الجوي المنخفض والطقس؟', [
+        'غالباً يرافقه طقس غير مستقر',
+        'دائماً طقس صافٍ',
+        'لا علاقة',
+      ], 0),
+      McqQuestion('لماذا يُستخدم القمر الصناعي في التنبؤ الجوي؟', [
+        'لرصد حركة السحب والعواصف',
+        'لقياس الحرارة فقط',
+        'لا فائدة منه',
+      ], 0),
     ],
   }),
   'space_journey': const GameInteractionConfig.mcq({
     AdaptiveLevel.weak: [
-      McqQuestion('ما اسم الكوكب الذي نعيش عليه؟', ['الأرض', 'المريخ', 'زحل'], 0),
+      McqQuestion('ما اسم الكوكب الذي نعيش عليه؟', [
+        'الأرض',
+        'المريخ',
+        'زحل',
+      ], 0),
     ],
     AdaptiveLevel.medium: [
       McqQuestion('ما هو الكوكب الأحمر؟', ['المريخ', 'الزهرة', 'عطارد'], 0),
       McqQuestion('ما أقرب كوكب إلى الشمس؟', ['عطارد', 'الأرض', 'زحل'], 0),
     ],
     AdaptiveLevel.advanced: [
-      McqQuestion('ما هو أكبر كوكب في المجموعة الشمسية؟', ['المشتري', 'الأرض', 'عطارد'], 0),
-      McqQuestion('ما الكوكب المعروف بحلقاته البارزة؟', ['زحل', 'المريخ', 'الزهرة'], 0),
+      McqQuestion('ما هو أكبر كوكب في المجموعة الشمسية؟', [
+        'المشتري',
+        'الأرض',
+        'عطارد',
+      ], 0),
+      McqQuestion('ما الكوكب المعروف بحلقاته البارزة؟', [
+        'زحل',
+        'المريخ',
+        'الزهرة',
+      ], 0),
     ],
   }),
   'who_am_i': const GameInteractionConfig.mcq({
     AdaptiveLevel.weak: [
-      McqQuestion('هذا الكوكب لونه أحمر، من أنا؟', ['المريخ', 'زحل', 'عطارد'], 0),
+      McqQuestion('هذا الكوكب لونه أحمر، من أنا؟', [
+        'المريخ',
+        'زحل',
+        'عطارد',
+      ], 0),
     ],
     AdaptiveLevel.medium: [
-      McqQuestion('أنا الأقرب للشمس، من أنا؟', ['عطارد', 'الأرض', 'المشتري'], 0),
-      McqQuestion('أنا الكوكب الذي تعيشون عليه، من أنا؟', ['الأرض', 'زحل', 'الزهرة'], 0),
+      McqQuestion('أنا الأقرب للشمس، من أنا؟', [
+        'عطارد',
+        'الأرض',
+        'المشتري',
+      ], 0),
+      McqQuestion('أنا الكوكب الذي تعيشون عليه، من أنا؟', [
+        'الأرض',
+        'زحل',
+        'الزهرة',
+      ], 0),
     ],
     AdaptiveLevel.advanced: [
-      McqQuestion('أنا الأكبر حجماً ولدي بقعة حمراء عظيمة، من أنا؟', ['المشتري', 'عطارد', 'الأرض'], 0),
-      McqQuestion('لدي حلقات جليدية وصخرية واضحة، من أنا؟', ['زحل', 'المريخ', 'الزهرة'], 0),
+      McqQuestion('أنا الأكبر حجماً ولدي بقعة حمراء عظيمة، من أنا؟', [
+        'المشتري',
+        'عطارد',
+        'الأرض',
+      ], 0),
+      McqQuestion('لدي حلقات جليدية وصخرية واضحة، من أنا؟', [
+        'زحل',
+        'المريخ',
+        'الزهرة',
+      ], 0),
     ],
   }),
   'day_and_night': const GameInteractionConfig.mcq({
     AdaptiveLevel.weak: [
-      McqQuestion('متى يكون النهار؟', ['عندما تواجه الأرض الشمس', 'عندما تبتعد الأرض عن الشمس', 'دائماً'], 0),
+      McqQuestion('متى يكون النهار؟', [
+        'عندما تواجه الأرض الشمس',
+        'عندما تبتعد الأرض عن الشمس',
+        'دائماً',
+      ], 0),
     ],
     AdaptiveLevel.medium: [
-      McqQuestion('لماذا يحدث الليل والنهار؟', ['دوران الأرض حول نفسها', 'دوران القمر حول الأرض', 'دوران الشمس حول الأرض'], 0),
-      McqQuestion('كم ساعة تستغرق الأرض لتدور حول نفسها دورة كاملة؟', ['24 ساعة', '365 يوماً', 'ساعة واحدة'], 0),
+      McqQuestion('لماذا يحدث الليل والنهار؟', [
+        'دوران الأرض حول نفسها',
+        'دوران القمر حول الأرض',
+        'دوران الشمس حول الأرض',
+      ], 0),
+      McqQuestion('كم ساعة تستغرق الأرض لتدور حول نفسها دورة كاملة؟', [
+        '24 ساعة',
+        '365 يوماً',
+        'ساعة واحدة',
+      ], 0),
     ],
     AdaptiveLevel.advanced: [
-      McqQuestion('ماذا يحدث لو دارت الأرض أبطأ بكثير؟', ['تطول مدة النهار والليل', 'يختفي الليل تماماً', 'لا يتغير شيء'], 0),
-      McqQuestion('كيف تؤثر زاوية ميل محور الأرض على طول النهار؟', ['تسبب اختلاف طول النهار بين الفصول', 'لا تؤثر إطلاقاً', 'تسبب توقف الدوران'], 0),
+      McqQuestion('ماذا يحدث لو دارت الأرض أبطأ بكثير؟', [
+        'تطول مدة النهار والليل',
+        'يختفي الليل تماماً',
+        'لا يتغير شيء',
+      ], 0),
+      McqQuestion('كيف تؤثر زاوية ميل محور الأرض على طول النهار؟', [
+        'تسبب اختلاف طول النهار بين الفصول',
+        'لا تؤثر إطلاقاً',
+        'تسبب توقف الدوران',
+      ], 0),
     ],
   }),
 };

@@ -9,7 +9,11 @@ class McqRoundWidget extends StatefulWidget {
   final McqQuestion question;
   final ValueChanged<bool> onAnswer;
 
-  const McqRoundWidget({super.key, required this.question, required this.onAnswer});
+  const McqRoundWidget({
+    super.key,
+    required this.question,
+    required this.onAnswer,
+  });
 
   @override
   State<McqRoundWidget> createState() => _McqRoundWidgetState();
@@ -29,7 +33,10 @@ class _McqRoundWidgetState extends State<McqRoundWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(widget.question.prompt, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          widget.question.prompt,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 16),
         for (var i = 0; i < widget.question.options.length; i++)
           Padding(
@@ -39,8 +46,10 @@ class _McqRoundWidgetState extends State<McqRoundWidget> {
                 backgroundColor: _selected == null
                     ? null
                     : i == widget.question.correctIndex
-                        ? Colors.green.withValues(alpha: 0.2)
-                        : (i == _selected ? Colors.red.withValues(alpha: 0.2) : null),
+                    ? Colors.green.withValues(alpha: 0.2)
+                    : (i == _selected
+                          ? Colors.red.withValues(alpha: 0.2)
+                          : null),
               ),
               onPressed: _selected != null
                   ? null

@@ -20,10 +20,10 @@ import '../../screens/units/units_screen.dart';
 import 'go_router_refresh_stream.dart';
 
 String _homeRouteFor(UserRole role) => switch (role) {
-      UserRole.teacher => '/teacher',
-      UserRole.parent => '/parent',
-      UserRole.student => '/dashboard',
-    };
+  UserRole.teacher => '/teacher',
+  UserRole.parent => '/parent',
+  UserRole.student => '/dashboard',
+};
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final client = ref.watch(supabaseClientProvider);
@@ -43,7 +43,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (location == '/' || location == '/splash' || location == '/login') {
-        final profile = await ref.read(authServiceProvider).loadCurrentProfile();
+        final profile = await ref
+            .read(authServiceProvider)
+            .loadCurrentProfile();
         if (profile == null) return '/login';
         if (profile.role == UserRole.student) {
           final progress = await client
@@ -51,7 +53,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               .select('current_level')
               .eq('student_id', profile.id)
               .maybeSingle();
-          final hasDiagnostic = progress != null; // row exists once created at sign-up
+          final hasDiagnostic =
+              progress != null; // row exists once created at sign-up
           if (!hasDiagnostic) return '/diagnostic';
         }
         return _homeRouteFor(profile.role);
@@ -60,30 +63,59 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/', builder: (context, state) => const LandingScreen()),
-      GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => LoginScreen(
           startInSignUp: state.uri.queryParameters['mode'] == 'signup',
         ),
       ),
-      GoRoute(path: '/diagnostic', builder: (context, state) => const DiagnosticTestScreen()),
-      GoRoute(path: '/dashboard', builder: (context, state) => const StudentDashboardScreen()),
-      GoRoute(path: '/progress-tree', builder: (context, state) => const ProgressTreeScreen()),
+      GoRoute(
+        path: '/diagnostic',
+        builder: (context, state) => const DiagnosticTestScreen(),
+      ),
+      GoRoute(
+        path: '/dashboard',
+        builder: (context, state) => const StudentDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/progress-tree',
+        builder: (context, state) => const ProgressTreeScreen(),
+      ),
       GoRoute(path: '/units', builder: (context, state) => const UnitsScreen()),
       GoRoute(
         path: '/units/:unitKey',
-        builder: (context, state) => GamesScreen(unitKey: state.pathParameters['unitKey']!),
+        builder: (context, state) =>
+            GamesScreen(unitKey: state.pathParameters['unitKey']!),
       ),
       GoRoute(
         path: '/games/:gameKey',
-        builder: (context, state) => GamePlayerScreen(gameKey: state.pathParameters['gameKey']!),
+        builder: (context, state) =>
+            GamePlayerScreen(gameKey: state.pathParameters['gameKey']!),
       ),
-      GoRoute(path: '/ai-assistant', builder: (context, state) => const AiAssistantScreen()),
-      GoRoute(path: '/achievements', builder: (context, state) => const AchievementsScreen()),
-      GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
-      GoRoute(path: '/teacher', builder: (context, state) => const TeacherDashboardScreen()),
-      GoRoute(path: '/parent', builder: (context, state) => const ParentDashboardScreen()),
+      GoRoute(
+        path: '/ai-assistant',
+        builder: (context, state) => const AiAssistantScreen(),
+      ),
+      GoRoute(
+        path: '/achievements',
+        builder: (context, state) => const AchievementsScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/teacher',
+        builder: (context, state) => const TeacherDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/parent',
+        builder: (context, state) => const ParentDashboardScreen(),
+      ),
     ],
   );
 });

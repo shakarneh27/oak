@@ -29,8 +29,14 @@ class GamesScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(game.gameName, style: Theme.of(context).textTheme.titleMedium),
-                    Text(game.lessonName, style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      game.gameName,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      game.lessonName,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     const SizedBox(height: 8),
                     Text('🟢 ضعيف: ${game.weakContent}'),
                     Text('🟡 متوسط: ${game.mediumContent}'),
@@ -39,9 +45,12 @@ class GamesScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('+${game.pointsReward} نقطة${game.badgeReward != null ? ' | ${game.badgeReward}' : ''}'),
+                        Text(
+                          '+${game.pointsReward} نقطة${game.badgeReward != null ? ' | ${game.badgeReward}' : ''}',
+                        ),
                         FilledButton(
-                          onPressed: () => context.push('/games/${game.gameKey}'),
+                          onPressed: () =>
+                              context.push('/games/${game.gameKey}'),
                           child: const Text('ابدأ اللعب'),
                         ),
                       ],

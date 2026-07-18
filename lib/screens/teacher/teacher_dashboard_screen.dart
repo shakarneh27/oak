@@ -25,10 +25,12 @@ class TeacherDashboardScreen extends ConsumerWidget {
               onPressed: () => ref.read(authServiceProvider).signOut(),
             ),
           ],
-          bottom: const TabBar(tabs: [
-            Tab(text: 'الجلسات الحية'),
-            Tab(text: 'تنبيهات الخطة العلاجية'),
-          ]),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'الجلسات الحية'),
+              Tab(text: 'تنبيهات الخطة العلاجية'),
+            ],
+          ),
         ),
         body: TabBarView(
           children: [
@@ -44,7 +46,9 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         return ListTile(
                           leading: const Icon(Icons.videogame_asset_outlined),
                           title: Text('${row['game_key']} — ${row['level']}'),
-                          subtitle: Text('محاولات: ${row['attempts_count']} | الحالة: ${row['status']}'),
+                          subtitle: Text(
+                            'محاولات: ${row['attempts_count']} | الحالة: ${row['status']}',
+                          ),
                         );
                       },
                     ),
@@ -59,9 +63,14 @@ class TeacherDashboardScreen extends ConsumerWidget {
                       itemBuilder: (context, index) {
                         final row = rows[rows.length - 1 - index];
                         return ListTile(
-                          leading: const Icon(Icons.priority_high, color: Colors.orange),
+                          leading: const Icon(
+                            Icons.priority_high,
+                            color: Colors.orange,
+                          ),
                           title: Text(row['action_taken']?.toString() ?? ''),
-                          subtitle: Text(row['trigger_condition']?.toString() ?? ''),
+                          subtitle: Text(
+                            row['trigger_condition']?.toString() ?? '',
+                          ),
                         );
                       },
                     ),

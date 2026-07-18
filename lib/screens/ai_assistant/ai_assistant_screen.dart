@@ -21,7 +21,10 @@ class AiAssistantScreen extends ConsumerStatefulWidget {
 class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   final _controller = TextEditingController();
   final _messages = <_ChatMessage>[
-    const _ChatMessage('أهلاً بك! أنا السنديانة 🌳، اسألني عن أي شيء يصعب عليك في الدروس.', fromOak: true),
+    const _ChatMessage(
+      'أهلاً بك! أنا السنديانة 🌳، اسألني عن أي شيء يصعب عليك في الدروس.',
+      fromOak: true,
+    ),
   ];
   bool _thinking = false;
 
@@ -59,7 +62,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               itemBuilder: (context, index) {
                 final message = _messages[index];
                 return Align(
-                  alignment: message.fromOak ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: message.fromOak
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     padding: const EdgeInsets.all(12),
@@ -67,7 +72,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     decoration: BoxDecoration(
                       color: message.fromOak
                           ? Theme.of(context).colorScheme.primaryContainer
-                          : Theme.of(context).colorScheme.surfaceContainerHighest,
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text(message.text),
@@ -84,12 +91,21 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(hintText: 'اكتب سؤالك هنا...'),
+                    decoration: const InputDecoration(
+                      hintText: 'اكتب سؤالك هنا...',
+                    ),
                     onSubmitted: (_) => _send(),
                   ),
                 ),
-                IconButton(icon: const Icon(Icons.mic_none), onPressed: () {}, tooltip: 'تحليل صوتي (قريباً)'),
-                IconButton(icon: const Icon(Icons.send), onPressed: _thinking ? null : _send),
+                IconButton(
+                  icon: const Icon(Icons.mic_none),
+                  onPressed: () {},
+                  tooltip: 'تحليل صوتي (قريباً)',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: _thinking ? null : _send,
+                ),
               ],
             ),
           ),

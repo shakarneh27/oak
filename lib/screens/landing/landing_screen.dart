@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
+import '../../widgets/brand_background.dart';
 import '../../widgets/oak_logo.dart';
 import '../../widgets/section_shell.dart';
 import 'landing_content.dart';
@@ -17,7 +18,6 @@ class LandingScreen extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverToBoxAdapter(child: _TopBar()),
           SliverList(
             delegate: SliverChildListDelegate(const [
               _HeroSection(),
@@ -34,57 +34,69 @@ class LandingScreen extends StatelessWidget {
   }
 }
 
-/// Top navigation bar: brand on one side, auth buttons in the corner.
+/// Top navigation bar overlaying the forest hero: brand on one side,
+/// auth buttons in the corner.
 class _TopBar extends StatelessWidget {
   const _TopBar();
 
   @override
   Widget build(BuildContext context) {
     final isNarrow = MediaQuery.sizeOf(context).width < 560;
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      elevation: 1,
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.sm,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: AppSpacing.contentMaxWidth,
-              ),
-              child: Row(
-                children: [
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: AlignmentDirectional.centerStart,
-                      child: OakBrand(showTagline: !isNarrow),
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppSpacing.contentMaxWidth,
+            ),
+            child: Row(
+              children: [
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: OakBrand(
+                      showTagline: !isNarrow,
+                      textColor: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  if (!isNarrow) ...[
-                    OutlinedButton(
-                      onPressed: () => context.go('/login?mode=signup'),
-                      child: const Text('حساب جديد'),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                if (!isNarrow) ...[
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white54),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                  ],
-                  isNarrow
-                      ? FilledButton(
-                          onPressed: () => context.go('/login'),
-                          child: const Text('دخول'),
-                        )
-                      : FilledButton.icon(
-                          onPressed: () => context.go('/login'),
-                          icon: const Icon(Icons.login, size: 18),
-                          label: const Text('تسجيل الدخول'),
-                        ),
+                    onPressed: () => context.go('/login?mode=signup'),
+                    child: const Text('حساب جديد'),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                 ],
-              ),
+                isNarrow
+                    ? FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: OakColors.forest,
+                        ),
+                        onPressed: () => context.go('/login'),
+                        child: const Text('دخول'),
+                      )
+                    : FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: OakColors.forest,
+                        ),
+                        onPressed: () => context.go('/login'),
+                        icon: const Icon(Icons.login, size: 18),
+                        label: const Text('تسجيل الدخول'),
+                      ),
+              ],
             ),
           ),
         ),
@@ -99,54 +111,70 @@ class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return SectionShell(
+    return LeafBackground(
       child: Column(
         children: [
-          const OakLogo(size: 120),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            LandingContent.heroTitle,
-            style: textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: OakColors.leafDark,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: Text(
-              LandingContent.heroSubtitle,
-              style: textTheme.titleMedium?.copyWith(height: 1.8),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            alignment: WrapAlignment.center,
-            children: [
-              FilledButton.icon(
-                onPressed: () => context.go('/login?mode=signup'),
-                icon: const Icon(Icons.rocket_launch_outlined),
-                label: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                  child: Text('ابدأ رحلة التعلم'),
+          const _TopBar(),
+          SectionShell(
+            child: Column(
+              children: [
+                const LogoCard(size: 190),
+                const SizedBox(height: AppSpacing.xl),
+                const BrandPill(
+                  text: 'تعلّم · اكتشف · وانمُ معنا',
+                  emoji: '🌿',
                 ),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.go('/login'),
-                icon: const Icon(Icons.login),
-                label: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                  child: Text('لدي حساب'),
+                const SizedBox(height: AppSpacing.sm),
+                const BrandPill(text: LandingContent.subjectBadge, emoji: '🏆'),
+                const SizedBox(height: AppSpacing.lg),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: Text(
+                    LandingContent.heroSubtitle,
+                    style: textTheme.titleMedium?.copyWith(
+                      height: 1.8,
+                      color: Colors.white.withValues(alpha: 0.92),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.xl),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: OakColors.gold,
+                        foregroundColor: OakColors.forestDeep,
+                      ),
+                      onPressed: () => context.go('/login?mode=signup'),
+                      icon: const Icon(Icons.rocket_launch_outlined),
+                      label: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Text('ابدأ رحلة التعلم'),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white54),
+                      ),
+                      onPressed: () => context.go('/login'),
+                      icon: const Icon(Icons.login),
+                      label: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Text('لدي حساب'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.section),
+                const _StatsRow(),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.section),
-          const _StatsRow(),
         ],
       ),
     );
@@ -184,10 +212,15 @@ class _StatBadge extends StatelessWidget {
           stat.value,
           style: textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w700,
-            color: OakColors.acorn,
+            color: OakColors.gold,
           ),
         ),
-        Text(stat.label, style: textTheme.bodyMedium),
+        Text(
+          stat.label,
+          style: textTheme.bodyMedium?.copyWith(
+            color: Colors.white.withValues(alpha: 0.85),
+          ),
+        ),
       ],
     );
   }

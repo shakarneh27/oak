@@ -28,7 +28,8 @@ class AppUser {
       name: map['name'] as String? ?? '',
       role: userRoleFromString(map['role'] as String? ?? 'student'),
       classroom: map['classroom'] as String?,
-      managedClassrooms: (map['managed_classrooms'] as List<dynamic>?)
+      managedClassrooms:
+          (map['managed_classrooms'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
@@ -36,10 +37,10 @@ class AppUser {
   }
 
   Map<String, dynamic> toInsertMap() => {
-        'id': id,
-        'name': name,
-        'role': role.name,
-        if (classroom != null) 'classroom': classroom,
-        if (managedClassrooms.isNotEmpty) 'managed_classrooms': managedClassrooms,
-      };
+    'id': id,
+    'name': name,
+    'role': role.name,
+    if (classroom != null) 'classroom': classroom,
+    if (managedClassrooms.isNotEmpty) 'managed_classrooms': managedClassrooms,
+  };
 }

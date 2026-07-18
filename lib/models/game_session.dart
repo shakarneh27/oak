@@ -18,11 +18,11 @@ GameSessionStatus _statusFromString(String value) {
 
 extension GameSessionStatusX on GameSessionStatus {
   String get dbValue => switch (this) {
-        GameSessionStatus.inProgress => 'in_progress',
-        GameSessionStatus.completed => 'completed',
-        GameSessionStatus.failed => 'failed',
-        GameSessionStatus.pausedForRemediation => 'paused_for_remediation',
-      };
+    GameSessionStatus.inProgress => 'in_progress',
+    GameSessionStatus.completed => 'completed',
+    GameSessionStatus.failed => 'failed',
+    GameSessionStatus.pausedForRemediation => 'paused_for_remediation',
+  };
 }
 
 class GameSession {

@@ -11,7 +11,11 @@ class MatchRoundWidget extends StatefulWidget {
   final List<MatchItem> items;
   final ValueChanged<bool> onCheck;
 
-  const MatchRoundWidget({super.key, required this.items, required this.onCheck});
+  const MatchRoundWidget({
+    super.key,
+    required this.items,
+    required this.onCheck,
+  });
 
   @override
   State<MatchRoundWidget> createState() => _MatchRoundWidgetState();
@@ -35,7 +39,8 @@ class _MatchRoundWidgetState extends State<MatchRoundWidget> {
   }
 
   void _shuffle() {
-    _labelOrder = List.generate(widget.items.length, (i) => i)..shuffle(Random());
+    _labelOrder = List.generate(widget.items.length, (i) => i)
+      ..shuffle(Random());
     _assignment.clear();
     _selectedEmojiIndex = null;
   }
@@ -68,10 +73,17 @@ class _MatchRoundWidgetState extends State<MatchRoundWidget> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: ChoiceChip(
-                      label: Text(entry.value.emoji, style: const TextStyle(fontSize: 22)),
+                      label: Text(
+                        entry.value.emoji,
+                        style: const TextStyle(fontSize: 22),
+                      ),
                       selected: selected,
-                      onSelected: matched ? null : (_) => setState(() => _selectedEmojiIndex = index),
-                      backgroundColor: matched ? Colors.green.withValues(alpha: 0.2) : null,
+                      onSelected: matched
+                          ? null
+                          : (_) => setState(() => _selectedEmojiIndex = index),
+                      backgroundColor: matched
+                          ? Colors.green.withValues(alpha: 0.2)
+                          : null,
                     ),
                   );
                 }).toList(),
@@ -90,9 +102,9 @@ class _MatchRoundWidgetState extends State<MatchRoundWidget> {
                       onPressed: (_selectedEmojiIndex == null || taken)
                           ? null
                           : () => setState(() {
-                                _assignment[_selectedEmojiIndex!] = slot;
-                                _selectedEmojiIndex = null;
-                              }),
+                              _assignment[_selectedEmojiIndex!] = slot;
+                              _selectedEmojiIndex = null;
+                            }),
                       child: Text(label, textAlign: TextAlign.center),
                     ),
                   );
@@ -102,7 +114,10 @@ class _MatchRoundWidgetState extends State<MatchRoundWidget> {
           ],
         ),
         const SizedBox(height: 16),
-        FilledButton(onPressed: complete ? _check : null, child: const Text('تحقق من الإجابات')),
+        FilledButton(
+          onPressed: complete ? _check : null,
+          child: const Text('تحقق من الإجابات'),
+        ),
       ],
     );
   }

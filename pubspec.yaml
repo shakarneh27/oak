@@ -45,6 +45,8 @@ dependencies:
   go_router: ^14.6.2
   # local persistence of the active session token
   shared_preferences: ^2.3.3
+  # renders the Nouri mascot SVG from the reference design
+  flutter_svg: ^2.0.10
 
 dev_dependencies:
   flutter_test:
@@ -68,9 +70,16 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # Bundled Arabic font (SIL OFL) so text renders without depending on
-  # Google's font CDN at runtime.
+  assets:
+    - assets/images/
+
+  # Bundled Arabic fonts (SIL OFL) so text renders without depending on
+  # Google's font CDN at runtime. Cairo is the design's primary font
+  # (variable font carries all weights); Tajawal is the fallback.
   fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Variable.ttf
     - family: Tajawal
       fonts:
         - asset: assets/fonts/Tajawal-Regular.ttf

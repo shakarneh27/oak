@@ -6,9 +6,9 @@ import '../core/theme/app_spacing.dart';
 import '../core/theme/app_theme.dart';
 import 'oak_logo.dart';
 
-/// Forest-gradient backdrop with softly scattered oak leaves — the brand
-/// canvas behind the splash, hero, and auth screens (per the reference
-/// design). Wraps [child] in a Stack above the painted background.
+/// Forest-gradient backdrop with glowing color orbs and softly scattered
+/// leaves — the brand canvas behind splash, hero, and auth screens,
+/// ported from the reference SplashPage.
 class LeafBackground extends StatelessWidget {
   final Widget child;
 
@@ -17,13 +17,13 @@ class LeafBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The Stack sizes itself to [child] (works inside scroll slivers where
-    // height is unbounded); the leaf layer then fills whatever that is.
+    // height is unbounded); the painted layer then fills whatever that is.
     return DecoratedBox(
       decoration: const BoxDecoration(gradient: OakGradients.forest),
       child: Stack(
         children: [
           const Positioned.fill(
-            child: CustomPaint(painter: _ScatteredLeavesPainter()),
+            child: CustomPaint(painter: _BackdropPainter()),
           ),
           child,
         ],
@@ -32,12 +32,44 @@ class LeafBackground extends StatelessWidget {
   }
 }
 
-class _ScatteredLeavesPainter extends CustomPainter {
-  const _ScatteredLeavesPainter();
+class _BackdropPainter extends CustomPainter {
+  const _BackdropPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    // deterministic pseudo-random layout so the backdrop is stable
+    // glowing orbs (sage / sky blue / gold), like the reference's radial
+    // gradient blobs in the corners
+    void orb(Offset center, double radius, Color color, double opacity) {
+      final paint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            color.withValues(alpha: opacity),
+            color.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: radius));
+      canvas.drawCircle(center, radius, paint);
+    }
+
+    orb(
+      Offset(size.width * -0.05, size.height * -0.1),
+      size.width * 0.35,
+      OakColors.primary,
+      0.20,
+    );
+    orb(
+      Offset(size.width * 1.05, size.height * 1.05),
+      size.width * 0.30,
+      OakColors.accentBlue,
+      0.15,
+    );
+    orb(
+      Offset(size.width * 1.0, size.height * 0.45),
+      size.width * 0.22,
+      OakColors.gold,
+      0.10,
+    );
+
+    // scattered leaves — deterministic layout so the backdrop is stable
     final random = math.Random(7);
     final paint = Paint();
     for (var i = 0; i < 26; i++) {
@@ -45,8 +77,8 @@ class _ScatteredLeavesPainter extends CustomPainter {
       final dy = random.nextDouble() * size.height;
       final len = 8 + random.nextDouble() * 10;
       final angle = random.nextDouble() * math.pi * 2;
-      paint.color = OakColors.leafLight.withValues(
-        alpha: 0.10 + random.nextDouble() * 0.15,
+      paint.color = OakColors.primary.withValues(
+        alpha: 0.12 + random.nextDouble() * 0.15,
       );
       canvas.save();
       canvas.translate(dx, dy);
@@ -65,8 +97,8 @@ class _ScatteredLeavesPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// The white rounded card holding the logo, with a soft glow and sparkle
-/// accents — matches the reference splash design.
+/// The white rounded card holding the official logo, with sage border,
+/// glow, and sparkle accents — per the reference splash.
 class LogoCard extends StatelessWidget {
   final double size;
 
@@ -80,44 +112,38 @@ class LogoCard extends StatelessWidget {
         Container(
           width: size,
           height: size,
-          padding: EdgeInsets.all(size * 0.12),
+          padding: EdgeInsets.all(size * 0.05),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(size * 0.16),
+            color: Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(size * 0.22),
+            border: Border.all(
+              color: OakColors.primary.withValues(alpha: 0.5),
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: OakColors.leafLight.withValues(alpha: 0.35),
-                blurRadius: 40,
-                spreadRadius: 6,
+                color: OakColors.primary.withValues(alpha: 0.35),
+                blurRadius: 50,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 60,
+                offset: const Offset(0, 20),
               ),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(child: OakLogo(size: size * 0.62)),
-              Text(
-                'السنديانة الرقمية',
-                style: TextStyle(
-                  color: OakColors.wordmark,
-                  fontWeight: FontWeight.w700,
-                  fontSize: size * 0.085,
-                ),
-              ),
-              Text(
-                'DIGITAL OAK',
-                style: TextStyle(
-                  color: OakColors.wordmark.withValues(alpha: 0.8),
-                  fontSize: size * 0.05,
-                  letterSpacing: size * 0.02,
-                ),
-              ),
-              SizedBox(height: size * 0.02),
-            ],
-          ),
+          child: OakLogo(size: size * 0.9),
         ),
-        Positioned(top: -8, right: -8, child: _Sparkle(size: size * 0.09)),
-        Positioned(bottom: -4, left: -10, child: _Sparkle(size: size * 0.06)),
+        Positioned(
+          top: -8,
+          right: -8,
+          child: _Sparkle(size: size * 0.09, color: OakColors.gold),
+        ),
+        Positioned(
+          bottom: -4,
+          left: -10,
+          child: _Sparkle(size: size * 0.06, color: OakColors.leafLight),
+        ),
       ],
     );
   }
@@ -125,41 +151,53 @@ class LogoCard extends StatelessWidget {
 
 class _Sparkle extends StatelessWidget {
   final double size;
+  final Color color;
 
-  const _Sparkle({required this.size});
+  const _Sparkle({required this.size, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Icon(Icons.auto_awesome, color: OakColors.gold, size: size);
+    return Icon(Icons.auto_awesome, color: color, size: size);
   }
 }
 
-/// Dark translucent pill with gold text — used for the tagline and the
-/// subject badge on brand screens.
+/// Translucent pill on the forest backdrop. [gold] switches from the sage
+/// tagline style to the gold badge style (reference: tagline vs
+/// competition badge).
 class BrandPill extends StatelessWidget {
   final String text;
   final String? emoji;
+  final bool gold;
 
-  const BrandPill({super.key, required this.text, this.emoji});
+  const BrandPill({
+    super.key,
+    required this.text,
+    this.emoji,
+    this.gold = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final tint = gold ? OakColors.gold : OakColors.primary;
+    final textColor = gold
+        ? OakColors.gold.withValues(alpha: 0.9)
+        : OakColors.leafLight.withValues(alpha: 0.92);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.sm + 2,
       ),
       decoration: BoxDecoration(
-        color: OakColors.forestDeep.withValues(alpha: 0.55),
+        color: tint.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: OakColors.gold.withValues(alpha: 0.35)),
+        border: Border.all(color: tint.withValues(alpha: gold ? 0.30 : 0.25)),
       ),
       child: Text(
         emoji == null ? text : '$emoji $text',
-        style: const TextStyle(
-          color: OakColors.gold,
+        style: TextStyle(
+          color: textColor,
           fontWeight: FontWeight.w700,
-          fontSize: 16,
+          fontSize: gold ? 14 : 16,
         ),
         textAlign: TextAlign.center,
       ),
@@ -167,7 +205,7 @@ class BrandPill extends StatelessWidget {
   }
 }
 
-/// Three softly pulsing dots — the brand loading indicator.
+/// Three softly pulsing sage dots — the brand loading indicator.
 class LoadingDots extends StatefulWidget {
   const LoadingDots({super.key});
 
@@ -179,7 +217,7 @@ class _LoadingDotsState extends State<LoadingDots>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
+    duration: const Duration(milliseconds: 1200),
   )..repeat();
 
   @override
@@ -204,7 +242,7 @@ class _LoadingDotsState extends State<LoadingDots>
                       0.35 +
                       0.65 *
                           ((math.sin(
-                                    (_controller.value - i / 3) * math.pi * 2,
+                                    (_controller.value - i * 0.2) * math.pi * 2,
                                   ) +
                                   1) /
                               2),
@@ -212,7 +250,7 @@ class _LoadingDotsState extends State<LoadingDots>
                     width: 9,
                     height: 9,
                     decoration: const BoxDecoration(
-                      color: OakColors.leafLight,
+                      color: OakColors.primary,
                       shape: BoxShape.circle,
                     ),
                   ),

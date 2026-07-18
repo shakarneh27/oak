@@ -125,7 +125,11 @@ class _HeroSection extends StatelessWidget {
                   emoji: '🌿',
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                const BrandPill(text: LandingContent.subjectBadge, emoji: '🏆'),
+                const BrandPill(
+                  text: LandingContent.subjectBadge,
+                  emoji: '🏆',
+                  gold: true,
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
@@ -146,8 +150,8 @@ class _HeroSection extends StatelessWidget {
                   children: [
                     FilledButton.icon(
                       style: FilledButton.styleFrom(
-                        backgroundColor: OakColors.gold,
-                        foregroundColor: OakColors.forestDeep,
+                        backgroundColor: OakColors.accentBlue,
+                        foregroundColor: OakColors.ink,
                       ),
                       onPressed: () => context.go('/login?mode=signup'),
                       icon: const Icon(Icons.rocket_launch_outlined),

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- نوري السنجاب — mascot ported from the reference design (SquirrelNouri) -->
+  <!-- Fluffy tail -->
+  <path d="M 140 160 C 180 160, 190 100, 170 70 C 150 40, 110 50, 120 90 C 130 130, 140 140, 140 160 Z" fill="#D97736"/>
+  <path d="M 145 150 C 170 150, 180 110, 165 90 C 150 70, 130 80, 135 110 C 140 140, 145 145, 145 150 Z" fill="#E89658"/>
+  <!-- Body -->
+  <ellipse cx="100" cy="130" rx="45" ry="55" fill="#E89658"/>
+  <ellipse cx="90" cy="135" rx="30" ry="45" fill="#FCE4D6"/>
+  <!-- Feet -->
+  <ellipse cx="70" cy="180" rx="20" ry="10" fill="#D97736"/>
+  <ellipse cx="120" cy="180" rx="20" ry="10" fill="#D97736"/>
+  <!-- Arms -->
+  <ellipse cx="70" cy="120" rx="12" ry="25" fill="#D97736" transform="rotate(30 70 120)"/>
+  <ellipse cx="130" cy="110" rx="12" ry="25" fill="#D97736" transform="rotate(-40 130 110)"/>
+  <circle cx="145" cy="95" r="10" fill="#E89658"/>
+  <!-- Head -->
+  <ellipse cx="90" cy="65" rx="40" ry="35" fill="#E89658"/>
+  <!-- Cheeks -->
+  <ellipse cx="65" cy="75" rx="15" ry="10" fill="#FCE4D6"/>
+  <ellipse cx="115" cy="75" rx="15" ry="10" fill="#FCE4D6"/>
+  <!-- Ears -->
+  <path d="M 65 40 Q 50 10, 80 30 Z" fill="#D97736"/>
+  <path d="M 115 40 Q 130 10, 100 30 Z" fill="#D97736"/>
+  <path d="M 68 40 Q 58 20, 75 35 Z" fill="#F28482"/>
+  <path d="M 112 40 Q 122 20, 105 35 Z" fill="#F28482"/>
+  <!-- Eyes -->
+  <circle cx="70" cy="60" r="8" fill="#35524A"/>
+  <circle cx="110" cy="60" r="8" fill="#35524A"/>
+  <circle cx="73" cy="57" r="3" fill="#FFFFFF"/>
+  <circle cx="113" cy="57" r="3" fill="#FFFFFF"/>
+  <!-- Nose -->
+  <ellipse cx="90" cy="70" rx="6" ry="4" fill="#35524A"/>
+  <!-- Smile -->
+  <path d="M 82 78 Q 90 85, 98 78" fill="none" stroke="#35524A" stroke-width="2" stroke-linecap="round"/>
+</svg>

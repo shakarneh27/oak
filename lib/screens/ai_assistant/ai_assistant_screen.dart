@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../providers/core_providers.dart';
+import '../../widgets/main_bottom_nav.dart';
 
 class _ChatMessage {
   final String text;
@@ -22,7 +24,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   final _controller = TextEditingController();
   final _messages = <_ChatMessage>[
     const _ChatMessage(
-      'أهلاً بك! أنا السنديانة 🌳، اسألني عن أي شيء يصعب عليك في الدروس.',
+      'أهلاً بك! أنا نوري 🐿️ سنجاب السنديانة، اسألني عن أي شيء يصعب عليك في الدروس.',
       fromOak: true,
     ),
   ];
@@ -52,7 +54,17 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('مساعد السنديانة الذكي')),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset('assets/images/nouri.svg', width: 34, height: 34),
+            const SizedBox(width: 8),
+            const Text('نوري — مساعدك الذكي'),
+          ],
+        ),
+      ),
+      bottomNavigationBar: const MainBottomNav(currentPath: '/ai-assistant'),
       body: Column(
         children: [
           Expanded(
@@ -61,23 +73,35 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
+                final bubble = Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.all(12),
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  decoration: BoxDecoration(
+                    color: message.fromOak
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(message.text),
+                );
+                if (!message.fromOak) {
+                  return Align(alignment: Alignment.centerLeft, child: bubble);
+                }
                 return Align(
-                  alignment: message.fromOak
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(12),
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    decoration: BoxDecoration(
-                      color: message.fromOak
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Text(message.text),
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Flexible(child: bubble),
+                      const SizedBox(width: 6),
+                      SvgPicture.asset(
+                        'assets/images/nouri.svg',
+                        width: 30,
+                        height: 30,
+                      ),
+                    ],
                   ),
                 );
               },

@@ -24,6 +24,7 @@ class SplashScreen extends StatelessWidget {
               const BrandPill(
                 text: 'علوم الصف الرابع — الفصل الثاني',
                 emoji: '🏆',
+                gold: true,
               ),
               const SizedBox(height: AppSpacing.xl),
               const LoadingDots(),

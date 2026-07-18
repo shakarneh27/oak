@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+// Tab set mirrors the reference design's BottomNav (home, units, AI
+// assistant, achievements, profile/settings).
 const _tabs = [
   ('/dashboard', Icons.home_outlined, 'الرئيسية'),
-  ('/progress-tree', Icons.park_outlined, 'شجرتي'),
   ('/units', Icons.menu_book_outlined, 'الوحدات'),
+  ('/ai-assistant', Icons.smart_toy_outlined, 'مساعد نوري'),
   ('/achievements', Icons.emoji_events_outlined, 'الإنجازات'),
   ('/settings', Icons.settings_outlined, 'الإعدادات'),
 ];

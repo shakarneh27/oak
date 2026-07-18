@@ -18,6 +18,7 @@ class AppTheme {
     );
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Tajawal',
       colorScheme: colorScheme,
       scaffoldBackgroundColor: const Color(0xFFF7FBF4),
       appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
@@ -44,6 +45,7 @@ class AppTheme {
     );
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Tajawal',
       colorScheme: colorScheme,
       appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
       cardTheme: const CardThemeData(

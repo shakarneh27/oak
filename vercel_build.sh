@@ -16,4 +16,7 @@ DEFINES=()
 [ -n "${SUPABASE_URL:-}" ] && DEFINES+=("--dart-define=SUPABASE_URL=${SUPABASE_URL}")
 [ -n "${SUPABASE_ANON_KEY:-}" ] && DEFINES+=("--dart-define=SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}")
 
-flutter build web --release ${DEFINES[@]+"${DEFINES[@]}"}
+# --no-web-resources-cdn bundles CanvasKit with the app instead of loading
+# it from gstatic.com, so the app still works on networks that block
+# Google CDNs (common in schools).
+flutter build web --release --no-web-resources-cdn ${DEFINES[@]+"${DEFINES[@]}"}

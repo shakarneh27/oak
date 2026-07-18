@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
@@ -18,6 +19,14 @@ class DigitalOakApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar'), Locale('en')],
+      // Without these delegates MaterialLocalizations has no Arabic
+      // resources, and every TextField crashes at build time (a grey box
+      // in release builds).
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,

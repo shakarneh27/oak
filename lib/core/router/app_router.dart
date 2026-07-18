@@ -10,6 +10,7 @@ import '../../screens/dashboard/student_dashboard_screen.dart';
 import '../../screens/diagnostic/diagnostic_test_screen.dart';
 import '../../screens/games/game_player_screen.dart';
 import '../../screens/games/games_screen.dart';
+import '../../screens/landing/landing_screen.dart';
 import '../../screens/parent/parent_dashboard_screen.dart';
 import '../../screens/progress_tree/progress_tree_screen.dart';
 import '../../screens/settings/settings_screen.dart';
@@ -28,17 +29,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final client = ref.watch(supabaseClientProvider);
 
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/',
     refreshListenable: GoRouterRefreshStream(client.auth.onAuthStateChange),
     redirect: (context, state) async {
       final location = state.matchedLocation;
       final session = client.auth.currentSession;
 
+      // Guests may browse the public landing page and the auth screen;
+      // anything else sends them home to the landing page.
       if (session == null) {
-        return location == '/login' ? null : '/login';
+        const guestLocations = {'/', '/login'};
+        return guestLocations.contains(location) ? null : '/';
       }
 
-      if (location == '/splash' || location == '/login') {
+      if (location == '/' || location == '/splash' || location == '/login') {
         final profile = await ref.read(authServiceProvider).loadCurrentProfile();
         if (profile == null) return '/login';
         if (profile.role == UserRole.student) {
@@ -55,8 +59,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(path: '/', builder: (context, state) => const LandingScreen()),
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => LoginScreen(
+          startInSignUp: state.uri.queryParameters['mode'] == 'signup',
+        ),
+      ),
       GoRoute(path: '/diagnostic', builder: (context, state) => const DiagnosticTestScreen()),
       GoRoute(path: '/dashboard', builder: (context, state) => const StudentDashboardScreen()),
       GoRoute(path: '/progress-tree', builder: (context, state) => const ProgressTreeScreen()),

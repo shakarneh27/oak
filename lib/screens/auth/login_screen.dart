@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_spacing.dart';
 import '../../models/app_user.dart';
 import '../../providers/core_providers.dart';
+import '../../widgets/oak_logo.dart';
 
 /// تسجيل الدخول: فصل المستخدمين حسب الدور (طالب / معلم / ولي أمر) — يعتمد
 /// على Supabase Auth بدلاً من حدث `auth_session_init` اليدوي.
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  /// When true the screen opens on the "حساب جديد" tab (deep link
+  /// `/login?mode=signup` from the landing page).
+  final bool startInSignUp;
+
+  const LoginScreen({super.key, this.startInSignUp = false});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -20,7 +27,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _nameController = TextEditingController();
   final _classroomController = TextEditingController();
 
-  bool _isSignUp = false;
+  late bool _isSignUp = widget.startInSignUp;
   UserRole _role = UserRole.student;
   bool _loading = false;
   String? _error;
@@ -48,10 +55,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           password: _passwordController.text,
           name: _nameController.text.trim(),
           role: _role,
-          classroom: _classroomController.text.trim().isEmpty ? null : _classroomController.text.trim(),
+          classroom: _classroomController.text.trim().isEmpty
+              ? null
+              : _classroomController.text.trim(),
         );
       } else {
-        await auth.signIn(email: _emailController.text.trim(), password: _passwordController.text);
+        await auth.signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
       }
       // GoRouter's redirect (driven by authStateProvider) takes it from here.
     } catch (e) {
@@ -64,77 +76,129 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول')),
+      appBar: AppBar(
+        title: const Text('تسجيل الدخول'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'العودة للصفحة الرئيسية',
+          onPressed: () => context.go('/'),
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('تسجيل الدخول')),
-                      ButtonSegment(value: true, label: Text('حساب جديد')),
-                    ],
-                    selected: {_isSignUp},
-                    onSelectionChanged: (s) => setState(() => _isSignUp = s.first),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_isSignUp) ...[
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'الاسم الكامل'),
-                      validator: (v) => (v == null || v.isEmpty) ? 'مطلوب' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<UserRole>(
-                      initialValue: _role,
-                      decoration: const InputDecoration(labelText: 'الدور'),
-                      items: const [
-                        DropdownMenuItem(value: UserRole.student, child: Text('طالب')),
-                        DropdownMenuItem(value: UserRole.teacher, child: Text('معلم')),
-                        DropdownMenuItem(value: UserRole.parent, child: Text('ولي أمر')),
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Center(child: OakLogo(size: 72)),
+                      const SizedBox(height: AppSpacing.md),
+                      SegmentedButton<bool>(
+                        segments: const [
+                          ButtonSegment(
+                            value: false,
+                            label: Text('تسجيل الدخول'),
+                          ),
+                          ButtonSegment(value: true, label: Text('حساب جديد')),
+                        ],
+                        selected: {_isSignUp},
+                        onSelectionChanged: (s) =>
+                            setState(() => _isSignUp = s.first),
+                      ),
+                      const SizedBox(height: 16),
+                      if (_isSignUp) ...[
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'الاسم الكامل',
+                          ),
+                          validator: (v) =>
+                              (v == null || v.isEmpty) ? 'مطلوب' : null,
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<UserRole>(
+                          initialValue: _role,
+                          decoration: const InputDecoration(labelText: 'الدور'),
+                          items: const [
+                            DropdownMenuItem(
+                              value: UserRole.student,
+                              child: Text('طالب'),
+                            ),
+                            DropdownMenuItem(
+                              value: UserRole.teacher,
+                              child: Text('معلم'),
+                            ),
+                            DropdownMenuItem(
+                              value: UserRole.parent,
+                              child: Text('ولي أمر'),
+                            ),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => _role = v ?? UserRole.student),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _classroomController,
+                          decoration: const InputDecoration(
+                            labelText: 'الصف (اختياري)',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                       ],
-                      onChanged: (v) => setState(() => _role = v ?? UserRole.student),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _classroomController,
-                      decoration: const InputDecoration(labelText: 'الصف (اختياري)'),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'البريد الإلكتروني'),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (v) => (v == null || !v.contains('@')) ? 'بريد إلكتروني غير صالح' : null,
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'البريد الإلكتروني',
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) => (v == null || !v.contains('@'))
+                            ? 'بريد إلكتروني غير صالح'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(
+                          labelText: 'كلمة المرور',
+                        ),
+                        obscureText: true,
+                        validator: (v) => (v == null || v.length < 6)
+                            ? '6 أحرف على الأقل'
+                            : null,
+                      ),
+                      const SizedBox(height: 20),
+                      if (_error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            _error!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      FilledButton(
+                        onPressed: _loading ? null : _submit,
+                        child: _loading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(_isSignUp ? 'إنشاء الحساب' : 'دخول'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'كلمة المرور'),
-                    obscureText: true,
-                    validator: (v) => (v == null || v.length < 6) ? '6 أحرف على الأقل' : null,
-                  ),
-                  const SizedBox(height: 20),
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                    ),
-                  FilledButton(
-                    onPressed: _loading ? null : _submit,
-                    child: _loading
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : Text(_isSignUp ? 'إنشاء الحساب' : 'دخول'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../../widgets/oak_logo.dart';
 
 /// شاشة البداية: تهيئة محلية فقط، لا أحداث Socket.io — GoRouter's redirect
 /// (see app_router.dart) performs the actual token check against the
@@ -15,7 +15,7 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.park_rounded, size: 96, color: OakColors.leafDark),
+            const OakLogo(size: 96),
             const SizedBox(height: 16),
             Text('السنديانة الرقمية', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 24),

@@ -143,7 +143,10 @@ class _ParentDashboardBody extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 alignment: Alignment.center,
-                child: const Text('🧒', style: TextStyle(fontSize: 22)),
+                child: Text(
+                  child.profile.displayAvatar,
+                  style: const TextStyle(fontSize: 22),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(

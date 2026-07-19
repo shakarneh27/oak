@@ -64,7 +64,10 @@ class StudentDashboardScreen extends ConsumerWidget {
                           border: Border.all(color: Colors.white, width: 2),
                         ),
                         alignment: Alignment.center,
-                        child: const Text('🧒', style: TextStyle(fontSize: 24)),
+                        child: Text(
+                          profile?.displayAvatar ?? '🧒',
+                          style: const TextStyle(fontSize: 24),
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(

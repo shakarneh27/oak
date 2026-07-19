@@ -33,12 +33,15 @@ class AuthService {
     await _client.auth.signInWithPassword(email: email, password: password);
   }
 
+  /// Teachers register the classroom they manage.
   Future<AppUser> signUp({
+    List<String> managedClassrooms = const [],
     required String email,
     required String password,
     required String name,
     required UserRole role,
     String? classroom,
+    String? avatar,
   }) async {
     final result = await _client.auth.signUp(email: email, password: password);
     final userId = result.user?.id;
@@ -50,6 +53,8 @@ class AuthService {
       name: name,
       role: role,
       classroom: classroom,
+      avatar: avatar,
+      managedClassrooms: managedClassrooms,
     );
     await _client.from('profiles').insert(appUser.toInsertMap());
     if (role == UserRole.student) {

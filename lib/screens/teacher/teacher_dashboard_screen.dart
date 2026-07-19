@@ -342,7 +342,10 @@ class _StudentsTab extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       alignment: Alignment.center,
-                      child: const Text('🧒', style: TextStyle(fontSize: 20)),
+                      child: Text(
+                        student.profile.displayAvatar,
+                        style: const TextStyle(fontSize: 20),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -468,7 +471,10 @@ class _StudentSheetState extends ConsumerState<_StudentSheet> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 alignment: Alignment.center,
-                child: const Text('🧒', style: TextStyle(fontSize: 22)),
+                child: Text(
+                  student.profile.displayAvatar,
+                  style: const TextStyle(fontSize: 22),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

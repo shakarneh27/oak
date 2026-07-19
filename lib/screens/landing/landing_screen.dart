@@ -22,7 +22,6 @@ class LandingScreen extends StatelessWidget {
             delegate: SliverChildListDelegate(const [
               _HeroSection(),
               _FeaturesSection(),
-              _UnitsSection(),
               _StepsSection(),
               _CallToActionSection(),
               _Footer(),
@@ -123,12 +122,6 @@ class _HeroSection extends StatelessWidget {
                 const BrandPill(
                   text: 'تعلّم · اكتشف · وانمُ معنا',
                   emoji: '🌿',
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                const BrandPill(
-                  text: LandingContent.subjectBadge,
-                  emoji: '🏆',
-                  gold: true,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 ConstrainedBox(
@@ -308,46 +301,6 @@ class _FeatureCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _UnitsSection extends StatelessWidget {
-  const _UnitsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return SectionShell(
-      child: Column(
-        children: [
-          const SectionHeading(
-            title: 'وحدات المنهاج المغطاة',
-            subtitle: 'مبنية على منهاج العلوم الفلسطيني للمرحلة الأساسية',
-          ),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            alignment: WrapAlignment.center,
-            children: [
-              for (final (index, name) in LandingContent.unitNames.indexed)
-                Chip(
-                  avatar: CircleAvatar(
-                    backgroundColor: OakColors.leafDark,
-                    child: Text(
-                      '${index + 1}',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ),
-                  label: Text(name),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.sm,
-                  ),
-                ),
-            ],
-          ),
-        ],
       ),
     );
   }

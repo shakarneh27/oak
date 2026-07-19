@@ -47,6 +47,8 @@ dependencies:
   shared_preferences: ^2.3.3
   # renders the Nouri mascot SVG from the reference design
   flutter_svg: ^2.0.10
+  # Web Audio + SpeechSynthesis bindings for the generated sound system
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:

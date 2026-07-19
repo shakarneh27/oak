@@ -29,11 +29,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final client = ref.watch(supabaseClientProvider);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     refreshListenable: GoRouterRefreshStream(client.auth.onAuthStateChange),
     redirect: (context, state) async {
       final location = state.matchedLocation;
       final session = client.auth.currentSession;
+
+      // The splash screen handles its own timed transition.
+      if (location == '/splash') return null;
 
       // Guests may browse the public landing page and the auth screen;
       // anything else sends them home to the landing page.
@@ -42,7 +45,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return guestLocations.contains(location) ? null : '/';
       }
 
-      if (location == '/' || location == '/splash' || location == '/login') {
+      if (location == '/' || location == '/login') {
         final profile = await ref
             .read(authServiceProvider)
             .loadCurrentProfile();

@@ -1,14 +1,19 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
 
-/// Growth-staged oak tree ported from the reference OakTree.tsx: the
-/// canopy fills in over six stages as [growth] (0–100) increases, ending
-/// with a golden crown glow at the "السنديانة العظيمة" stage.
+/// شجرة السنديانة الواقعية — تنمو نمواً متصلاً (لا قفزات بين مراحل):
+/// كل إجابة صحيحة ترفع [growth] فيطول الجذع وتتمدد الأغصان وتكتنز
+/// الأوراق أمام عين الطالب عبر تحريك Tween سلس، وتتوَّج ذهبياً عند القمة.
 class OakTree extends StatelessWidget {
   final double growth;
 
-  const OakTree({super.key, required this.growth});
+  /// عطّلها في السياقات الساكنة (اختبارات ذهبية مثلاً).
+  final bool animate;
+
+  const OakTree({super.key, required this.growth, this.animate = true});
 
   /// Same thresholds as the reference component.
   static int stageFor(double growth) => growth >= 85
@@ -36,105 +41,329 @@ class OakTree extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _OakTreePainter(stage: stageFor(growth)));
+    final target = growth.clamp(0, 100).toDouble();
+    if (!animate) {
+      return CustomPaint(painter: _OakTreePainter(growth: target));
+    }
+    // TweenAnimationBuilder re-targets smoothly: on first build the tree
+    // "grows up" from the ground, and every later growth bump (a correct
+    // answer syncing through Realtime) animates from the current size.
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: target),
+      duration: const Duration(milliseconds: 1800),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, _) =>
+          CustomPaint(painter: _OakTreePainter(growth: value)),
+    );
   }
 }
 
 class _OakTreePainter extends CustomPainter {
-  final int stage;
+  /// Continuous 0–100.
+  final double growth;
 
-  _OakTreePainter({required this.stage});
+  _OakTreePainter({required this.growth});
+
+  static double _smooth(double x) {
+    final v = x.clamp(0.0, 1.0);
+    return v * v * (3 - 2 * v);
+  }
+
+  /// Progress of an element that starts appearing at [from] and is fully
+  /// grown at [to].
+  double _phase(double t, double from, double to) =>
+      _smooth((t - from) / (to - from));
 
   @override
   void paint(Canvas canvas, Size size) {
-    final s = size.width / 400;
+    final t = (growth / 100).clamp(0.0, 1.0);
+    final sx = size.width / 400;
     final sy = size.height / 400;
-    final paint = Paint();
+    final paint = Paint()..isAntiAlias = true;
 
-    void circle(
-      double cx,
-      double cy,
-      double r,
-      Color color, {
-      double opacity = 0.9,
-    }) {
-      paint.color = color.withValues(alpha: opacity);
-      canvas.drawCircle(Offset(cx * s, cy * sy), r * s, paint);
+    Offset p(double x, double y) => Offset(x * sx, y * sy);
+
+    // ── sun with a soft halo ─────────────────────────────────────────
+    for (final (r, a) in const [(58.0, 0.10), (42.0, 0.16), (26.0, 0.85)]) {
+      paint.color = OakColors.gold.withValues(alpha: a);
+      canvas.drawCircle(p(332, 56), r * sx, paint);
     }
 
-    // ground
+    // ── ground: two soft mounds + roots ──────────────────────────────
+    const groundY = 342.0;
+    paint.color = const Color(0xFF9DBB7C);
+    canvas.drawOval(
+      Rect.fromCenter(center: p(200, groundY + 12), width: 300 * sx, height: 52 * sy),
+      paint,
+    );
     paint.color = OakColors.secondary;
     canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(200 * s, 350 * sy),
-        width: 240 * s,
-        height: 40 * sy,
-      ),
+      Rect.fromCenter(center: p(200, groundY + 18), width: 340 * sx, height: 44 * sy),
       paint,
     );
 
-    // trunk grows slightly with each stage
-    final trunkScale = 0.8 + stage * 0.04;
-    canvas.save();
-    canvas.translate(200 * s, 350 * sy);
-    canvas.scale(trunkScale);
-    canvas.translate(-200 * s, -350 * sy);
-    paint.color = const Color(0xFF8B5A2B);
+    // roots flare out once the tree is established
+    final rootT = _phase(t, 0.18, 0.5);
+    if (rootT > 0) {
+      paint.color = const Color(0xFF6E4318);
+      for (final dir in const [-1.0, 1.0]) {
+        final root = Path()
+          ..moveTo(p(200 + dir * 6, groundY).dx, p(0, groundY).dy)
+          ..quadraticBezierTo(
+            p(200 + dir * (14 + 14 * rootT), groundY + 2).dx,
+            p(0, groundY + 4).dy,
+            p(200 + dir * (24 + 20 * rootT), groundY + 12).dx,
+            p(0, groundY + 12).dy,
+          )
+          ..quadraticBezierTo(
+            p(200 + dir * 14, groundY + 10).dx,
+            p(0, groundY + 10).dy,
+            p(200 + dir * 4, groundY).dx,
+            p(0, groundY).dy,
+          )
+          ..close();
+        canvas.drawPath(root, paint);
+      }
+    }
+
+    // ── trunk: tapers and leans slightly, grows continuously ─────────
+    final trunkT = _phase(t, 0.0, 0.9);
+    final trunkH = 26 + 210 * trunkT; // top of trunk above ground
+    final topY = groundY - trunkH;
+    final baseW = 7 + 34 * trunkT;
+    final topW = baseW * 0.32;
+
     final trunk = Path()
-      ..moveTo(180 * s, 350 * sy)
-      ..cubicTo(180 * s, 320 * sy, 190 * s, 280 * sy, 190 * s, 200 * sy)
-      ..cubicTo(190 * s, 280 * sy, 200 * s, 320 * sy, 220 * s, 350 * sy)
+      ..moveTo(p(200 - baseW / 2, groundY).dx, p(0, groundY).dy)
+      ..cubicTo(
+        p(200 - baseW * 0.42, groundY - trunkH * 0.38).dx,
+        p(0, groundY - trunkH * 0.38).dy,
+        p(196 - topW / 2, topY + trunkH * 0.28).dx,
+        p(0, topY + trunkH * 0.28).dy,
+        p(198 - topW / 2, topY).dx,
+        p(0, topY).dy,
+      )
+      ..lineTo(p(198 + topW / 2, topY).dx, p(0, topY).dy)
+      ..cubicTo(
+        p(202 + topW / 2, topY + trunkH * 0.3).dx,
+        p(0, topY + trunkH * 0.3).dy,
+        p(200 + baseW * 0.46, groundY - trunkH * 0.34).dx,
+        p(0, groundY - trunkH * 0.34).dy,
+        p(200 + baseW / 2, groundY).dx,
+        p(0, groundY).dy,
+      )
       ..close();
+    paint.color = const Color(0xFF7C4E22);
     canvas.drawPath(trunk, paint);
-    canvas.restore();
 
-    // stage 0: seedling leaves
-    paint.color = OakColors.primary;
-    final leaf1 = Path()
-      ..moveTo(190 * s, 230 * sy)
-      ..quadraticBezierTo(170 * s, 210 * sy, 160 * s, 220 * sy)
-      ..quadraticBezierTo(180 * s, 240 * sy, 190 * s, 230 * sy)
+    // sunlit edge of the bark
+    paint.color = const Color(0xFF9A6A35).withValues(alpha: 0.85);
+    final barkLight = Path()
+      ..moveTo(p(200 - baseW / 2 + baseW * 0.18, groundY).dx, p(0, groundY).dy)
+      ..cubicTo(
+        p(200 - baseW * 0.24, groundY - trunkH * 0.4).dx,
+        p(0, groundY - trunkH * 0.4).dy,
+        p(197 - topW * 0.1, topY + trunkH * 0.25).dx,
+        p(0, topY + trunkH * 0.25).dy,
+        p(198, topY).dx,
+        p(0, topY).dy,
+      )
+      ..lineTo(p(198 - topW / 2, topY).dx, p(0, topY).dy)
+      ..cubicTo(
+        p(196 - topW / 2, topY + trunkH * 0.28).dx,
+        p(0, topY + trunkH * 0.28).dy,
+        p(200 - baseW * 0.42, groundY - trunkH * 0.38).dx,
+        p(0, groundY - trunkH * 0.38).dy,
+        p(200 - baseW / 2, groundY).dx,
+        p(0, groundY).dy,
+      )
       ..close();
-    final leaf2 = Path()
-      ..moveTo(210 * s, 225 * sy)
-      ..quadraticBezierTo(230 * s, 205 * sy, 240 * s, 215 * sy)
-      ..quadraticBezierTo(220 * s, 235 * sy, 210 * s, 225 * sy)
-      ..close();
-    canvas.drawPath(leaf1, paint);
-    canvas.drawPath(leaf2, paint);
+    canvas.drawPath(barkLight, paint);
 
-    if (stage >= 1) {
-      circle(200, 170, 40, OakColors.primary);
-      circle(170, 190, 30, OakColors.primary);
-      circle(230, 190, 30, OakColors.primary);
+    // ── branches: tapered limbs reaching for the canopy ──────────────
+    // (startFrac along trunk, direction, reach, appears at)
+    const branches = [
+      (0.94, -1.0, 78.0, 0.30),
+      (0.94, 1.0, 78.0, 0.34),
+      (0.72, -1.0, 62.0, 0.46),
+      (0.72, 1.0, 62.0, 0.50),
+      (0.52, 1.0, 46.0, 0.62),
+      (0.52, -1.0, 46.0, 0.66),
+    ];
+    paint.color = const Color(0xFF7C4E22);
+    for (final (frac, dir, reach, appear) in branches) {
+      final bt = _phase(t, appear, appear + 0.18);
+      if (bt <= 0) continue;
+      final sy0 = groundY - trunkH * frac;
+      final len = reach * bt;
+      final tipX = 200 + dir * len;
+      final tipY = sy0 - len * 0.62;
+      final w = (baseW * 0.24 * bt).clamp(1.5, 9.0);
+      final branch = Path()
+        ..moveTo(p(200, sy0 - w).dx, p(0, sy0 - w).dy)
+        ..quadraticBezierTo(
+          p(200 + dir * len * 0.5, sy0 - len * 0.5).dx,
+          p(0, sy0 - len * 0.5).dy,
+          p(tipX, tipY).dx,
+          p(0, tipY).dy,
+        )
+        ..quadraticBezierTo(
+          p(200 + dir * len * 0.48, sy0 - len * 0.34).dx,
+          p(0, sy0 - len * 0.34).dy,
+          p(200, sy0 + w).dx,
+          p(0, sy0 + w).dy,
+        )
+        ..close();
+      canvas.drawPath(branch, paint);
     }
-    if (stage >= 2) {
-      circle(200, 110, 60, const Color(0xFF8DAE6A));
-      circle(140, 140, 50, const Color(0xFF8DAE6A));
-      circle(260, 140, 50, const Color(0xFF8DAE6A));
-      circle(170, 100, 45, OakColors.primary);
-      circle(230, 100, 45, OakColors.primary);
+
+    // ── seedling leaves while the tree is still a sprout ─────────────
+    final sproutT = 1 - _phase(t, 0.12, 0.3);
+    if (sproutT > 0) {
+      paint.color = OakColors.primary.withValues(alpha: sproutT);
+      for (final dir in const [-1.0, 1.0]) {
+        final leaf = Path()
+          ..moveTo(p(200, topY + 6).dx, p(0, topY + 6).dy)
+          ..quadraticBezierTo(
+            p(200 + dir * 26, topY - 10).dx,
+            p(0, topY - 10).dy,
+            p(200 + dir * 38, topY + 2).dx,
+            p(0, topY + 2).dy,
+          )
+          ..quadraticBezierTo(
+            p(200 + dir * 18, topY + 12).dx,
+            p(0, topY + 12).dy,
+            p(200, topY + 6).dx,
+            p(0, topY + 6).dy,
+          )
+          ..close();
+        canvas.drawPath(leaf, paint);
+      }
     }
-    if (stage >= 3) {
-      circle(200, 50, 70, const Color(0xFF7A9A5A));
-      circle(120, 90, 60, const Color(0xFF7A9A5A));
-      circle(280, 90, 60, const Color(0xFF7A9A5A));
-      circle(150, 40, 55, const Color(0xFF8DAE6A));
-      circle(250, 40, 55, const Color(0xFF8DAE6A));
+
+    // ── canopy: layered leaf clusters that swell as growth rises ─────
+    // (dx, dy from trunk top at full size, radius, appears at, color)
+    final clusters = <(double, double, double, double, Color)>[
+      // deep shadow layer
+      (-58, 26, 54, 0.22, const Color(0xFF5E7C42)),
+      (58, 26, 54, 0.26, const Color(0xFF5E7C42)),
+      (0, 44, 62, 0.20, const Color(0xFF5E7C42)),
+      // mid greens
+      (-84, -4, 52, 0.38, const Color(0xFF7A9A5A)),
+      (84, -4, 52, 0.42, const Color(0xFF7A9A5A)),
+      (-38, -34, 56, 0.34, const Color(0xFF7A9A5A)),
+      (38, -34, 56, 0.36, const Color(0xFF7A9A5A)),
+      (0, 6, 64, 0.28, const Color(0xFF6E8C4E)),
+      // bright crown
+      (-56, -52, 46, 0.52, const Color(0xFF8DAE6A)),
+      (56, -52, 46, 0.56, const Color(0xFF8DAE6A)),
+      (0, -68, 54, 0.60, const Color(0xFF8DAE6A)),
+      (-20, -18, 48, 0.48, OakColors.primary),
+      (20, -14, 48, 0.50, OakColors.primary),
+      // sunlit highlights
+      (-34, -60, 26, 0.70, const Color(0xFFB9D394)),
+      (30, -70, 24, 0.76, const Color(0xFFB9D394)),
+      (2, -34, 30, 0.72, const Color(0xFFA8C686)),
+    ];
+    final spread = 0.42 + 0.58 * _phase(t, 0.15, 0.95);
+    for (final (dx, dy, r, appear, color) in clusters) {
+      final ct = _phase(t, appear, appear + 0.22);
+      if (ct <= 0) continue;
+      paint.color = color.withValues(alpha: 0.55 + 0.45 * ct);
+      canvas.drawCircle(
+        Offset(
+          p(200 + dx * spread, 0).dx,
+          p(0, topY + 8 + dy * spread).dy,
+        ),
+        r * ct * sx,
+        paint,
+      );
     }
-    if (stage >= 4) {
-      circle(100, 60, 50, const Color(0xFF688749));
-      circle(300, 60, 50, const Color(0xFF688749));
-      circle(160, 0, 60, const Color(0xFF7A9A5A));
-      circle(240, 0, 60, const Color(0xFF7A9A5A));
+
+    // ── grass blades and flowers fill in with progress ───────────────
+    final grassT = _phase(t, 0.08, 0.6);
+    if (grassT > 0) {
+      paint
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.4 * sx
+        ..color = const Color(0xFF6E8C4E).withValues(alpha: grassT);
+      for (final (gx, gh) in const [
+        (86.0, 14.0),
+        (120.0, 18.0),
+        (158.0, 12.0),
+        (248.0, 16.0),
+        (286.0, 13.0),
+        (318.0, 17.0),
+      ]) {
+        canvas.drawLine(
+          p(gx, groundY + 14),
+          p(gx + 3, groundY + 14 - gh * grassT),
+          paint,
+        );
+      }
+      paint.style = PaintingStyle.fill;
+      final flowerT = _phase(t, 0.45, 0.8);
+      if (flowerT > 0) {
+        for (final (fx, color) in const [
+          (104.0, OakColors.coral),
+          (270.0, OakColors.gold),
+          (330.0, Color(0xFF7CC6FE)),
+        ]) {
+          paint.color = color.withValues(alpha: flowerT);
+          canvas.drawCircle(p(fx, groundY + 6), 3.6 * sx * flowerT, paint);
+        }
+      }
     }
-    if (stage >= 5) {
-      circle(200, -10, 70, OakColors.gold, opacity: 0.3);
-      circle(200, 0, 55, const Color(0xFF688749));
+
+    // ── the golden crown of the great oak ────────────────────────────
+    final goldT = _phase(t, 0.85, 1.0);
+    if (goldT > 0) {
+      paint.color = OakColors.gold.withValues(alpha: 0.13 * goldT);
+      canvas.drawCircle(p(200, topY - 44 * spread), 92 * goldT * sx, paint);
+
+      // acorns tucked into the canopy
+      for (final (ax, ay) in const [(-52.0, 10.0), (46.0, -6.0), (-6.0, -50.0)]) {
+        final c = Offset(
+          p(200 + ax * spread, 0).dx,
+          p(0, topY + 8 + ay * spread).dy,
+        );
+        paint.color = const Color(0xFF8B5A2B).withValues(alpha: goldT);
+        canvas.drawOval(
+          Rect.fromCenter(center: c, width: 9 * sx, height: 12 * sy),
+          paint,
+        );
+        paint.color = const Color(0xFF6E4318).withValues(alpha: goldT);
+        canvas.drawArc(
+          Rect.fromCenter(center: c.translate(0, -3 * sy), width: 10 * sx, height: 7 * sy),
+          math.pi,
+          math.pi,
+          true,
+          paint,
+        );
+      }
+
+      // sparkles
+      paint.color = OakColors.gold.withValues(alpha: goldT);
+      for (final (sxp, syp, r) in const [
+        (128.0, 70.0, 5.0),
+        (282.0, 46.0, 4.0),
+        (206.0, 8.0, 6.0),
+      ]) {
+        final c = p(sxp, syp);
+        final star = Path()
+          ..moveTo(c.dx, c.dy - r * sx * 1.6)
+          ..quadraticBezierTo(c.dx, c.dy, c.dx + r * sx * 1.6, c.dy)
+          ..quadraticBezierTo(c.dx, c.dy, c.dx, c.dy + r * sx * 1.6)
+          ..quadraticBezierTo(c.dx, c.dy, c.dx - r * sx * 1.6, c.dy)
+          ..quadraticBezierTo(c.dx, c.dy, c.dx, c.dy - r * sx * 1.6)
+          ..close();
+        canvas.drawPath(star, paint);
+      }
     }
   }
 
   @override
   bool shouldRepaint(covariant _OakTreePainter oldDelegate) =>
-      oldDelegate.stage != stage;
+      oldDelegate.growth != growth;
 }

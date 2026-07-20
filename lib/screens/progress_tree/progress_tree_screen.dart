@@ -6,6 +6,7 @@ import '../../models/adaptive_level.dart';
 import '../../providers/core_providers.dart';
 import '../../providers/data_providers.dart';
 import '../../widgets/main_bottom_nav.dart';
+import '../../widgets/oak_tree.dart';
 
 /// شجرة التقدم: خريطة تفاعلية مرئية تظهر نمو شجرة السنديانة مع كل إنجاز،
 /// تُزامَن فوراً عبر `sync_tree_growth` (هنا: Supabase Realtime).
@@ -26,34 +27,63 @@ class ProgressTreeScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('تعذر التحميل: $e')),
         data: (progress) {
           final stage = progress?.treeGrowthStage ?? 0;
+          final growth = (stage * 5).clamp(0, 100).toDouble();
           final leaves = progress?.oakLeaves ?? 0;
           final level = progress?.currentLevel.labelAr ?? '-';
+          final stageLabel = OakTree.levelLabelFor(growth);
           return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.park_rounded,
-                  size: (80 + stage * 12).clamp(80, 220).toDouble(),
-                  color: OakColors.leafDark,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'مرحلة النمو: $stage',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text('أوراق السنديانة: $leaves 🍃'),
-                const SizedBox(height: 8),
-                Text('المستوى الحالي: $level'),
-                const SizedBox(height: 24),
-                Wrap(
-                  spacing: 8,
-                  children: (progress?.badgesUnlocked ?? const [])
-                      .map((b) => Chip(label: Text(b)))
-                      .toList(),
-                ),
-              ],
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFDDF0FF), Color(0xFFF6FBEF)],
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: OakColors.primary.withValues(alpha: 0.25),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      height: 380,
+                      child: OakTree(growth: growth),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '${stageLabel.$2} ${stageLabel.$1}',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'نمو الشجرة: ${growth.round()}% · أوراق: $leaves 🍃 · '
+                    'المستوى: $level',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade600, height: 1.7),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: (progress?.badgesUnlocked ?? const [])
+                        .map((b) => Chip(label: Text(b)))
+                        .toList(),
+                  ),
+                ],
+              ),
             ),
           );
         },

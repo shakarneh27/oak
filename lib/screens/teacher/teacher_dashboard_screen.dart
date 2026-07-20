@@ -150,10 +150,110 @@ class _OverviewTab extends StatelessWidget {
       (sum, s) => sum + s.progress.oakLeaves,
     );
     final needsHelp = students.where((s) => s.growthPercent < 30).length;
+    final weakCount = students
+        .where((s) => s.progress.currentLevel == AdaptiveLevel.weak)
+        .length;
+    final mediumCount = students
+        .where((s) => s.progress.currentLevel == AdaptiveLevel.medium)
+        .length;
+    final advancedCount = students.length - weakCount - mediumCount;
+    final placementPending = students
+        .where((s) => !s.progress.placementDone)
+        .length;
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // ── ترويسة التقرير: متوسط نمو الصف في حلقة ─────────────────
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [Color(0xFF2D4A2D), Color(0xFF3A5C3A), Color(0xFF486E42)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2D4A2D).withValues(alpha: 0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '📊 تقرير الصف',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 17,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      students.isEmpty
+                          ? 'لا يوجد طلاب مرتبطون بصفوفك بعد'
+                          : '${students.length} طالباً · $totalStars ⭐ مكتسبة'
+                                '${placementPending > 0 ? ' · $placementPending بانتظار امتحان المستوى' : ''}',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 12,
+                        height: 1.7,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 84,
+                height: 84,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: avgGrowth / 100,
+                      strokeWidth: 7,
+                      strokeCap: StrokeCap.round,
+                      backgroundColor: Colors.white.withValues(alpha: 0.15),
+                      valueColor: const AlwaysStoppedAnimation(OakColors.gold),
+                    ),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '$avgGrowth%',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(
+                            'متوسط النمو',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.75),
+                              fontSize: 8.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
             _StatCard(
@@ -163,17 +263,6 @@ class _OverviewTab extends StatelessWidget {
               background: const Color(0xFFEFF6FF),
             ),
             const SizedBox(width: 10),
-            _StatCard(
-              emoji: '🌱',
-              label: 'متوسط النمو',
-              value: '$avgGrowth%',
-              background: const Color(0xFFF0FDF4),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
             _StatCard(
               emoji: '⭐',
               label: 'مجموع النجوم',
@@ -189,7 +278,73 @@ class _OverviewTab extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+        // ── توزيع المستويات ────────────────────────────────────────
+        if (students.isNotEmpty) ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: OakColors.secondary),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'توزيع مستويات الصف',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    height: 14,
+                    child: Row(
+                      children: [
+                        if (weakCount > 0)
+                          Expanded(
+                            flex: weakCount,
+                            child: const ColoredBox(color: OakColors.coral),
+                          ),
+                        if (mediumCount > 0)
+                          Expanded(
+                            flex: mediumCount,
+                            child: const ColoredBox(color: Color(0xFFFACC15)),
+                          ),
+                        if (advancedCount > 0)
+                          Expanded(
+                            flex: advancedCount,
+                            child: const ColoredBox(color: OakColors.leafDark),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  children: [
+                    _LegendDot(
+                      color: OakColors.coral,
+                      label: 'ضعيف: $weakCount',
+                    ),
+                    _LegendDot(
+                      color: const Color(0xFFFACC15),
+                      label: 'متوسط: $mediumCount',
+                    ),
+                    _LegendDot(
+                      color: OakColors.leafDark,
+                      label: 'متقدم: $advancedCount',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         const Text(
           'نمو طلابك',
           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
@@ -209,17 +364,28 @@ class _OverviewTab extends StatelessWidget {
           for (final student in [
             ...students,
           ]..sort((a, b) => b.growthPercent.compareTo(a.growthPercent)))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: OakColors.secondary),
+              ),
               child: Row(
                 children: [
+                  Text(
+                    student.profile.displayAvatar,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(width: 8),
                   SizedBox(
-                    width: 110,
+                    width: 96,
                     child: Text(
                       student.profile.name.split(' ').first,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         fontSize: 13,
                       ),
                     ),
@@ -251,6 +417,32 @@ class _OverviewTab extends StatelessWidget {
                 ],
               ),
             ),
+      ],
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+        ),
       ],
     );
   }
@@ -902,30 +1094,81 @@ class _RemedialPlanTab extends ConsumerWidget {
             ),
           );
 
+    final weakCount = needsPlan
+        .where((s) => s.progress.currentLevel == AdaptiveLevel.weak)
+        .length;
+    final mediumCount = needsPlan.length - weakCount;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // ── ترويسة الخطة العلاجية ──────────────────────────────────
         Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: OakColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [Color(0xFF35524A), Color(0xFF4A6B5E)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF35524A).withValues(alpha: 0.3),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          child: const Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('💊', style: TextStyle(fontSize: 24)),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'خطط علاجية مقترحة للطلاب الضعفاء والمتوسطين، مبنية على '
-                  'نتيجة امتحان تحديد المستوى وأداء الطالب في الأنشطة.',
-                  style: TextStyle(fontSize: 12, height: 1.7),
+              const Row(
+                children: [
+                  Text('💊', style: TextStyle(fontSize: 28)),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'الخطة العلاجية المقترحة',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 17,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'خطط مخصصة لكل طالب ضعيف أو متوسط، مبنية على نتيجة امتحان '
+                'تحديد المستوى وأدائه الفعلي في الأنشطة.',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  fontSize: 12,
+                  height: 1.7,
                 ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _PlanCounter(
+                    emoji: '🔴',
+                    label: 'طلاب ضعفاء',
+                    value: '$weakCount',
+                  ),
+                  const SizedBox(width: 8),
+                  _PlanCounter(
+                    emoji: '🟡',
+                    label: 'طلاب متوسطون',
+                    value: '$mediumCount',
+                  ),
+                ],
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         if (needsPlan.isEmpty)
           Card(
             child: Padding(
@@ -966,6 +1209,57 @@ class _RemedialPlanTab extends ConsumerWidget {
   }
 }
 
+class _PlanCounter extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final String value;
+
+  const _PlanCounter({
+    required this.emoji,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+              ),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// بطاقة خطة علاجية فاخرة: ترويسة متدرجة بلون المستوى، نقاط الضعف،
+/// أنشطة مقترحة كبطاقات غنية، خطوات مرقمة، وإرشاد تربوي بارز.
 class _PlanCard extends StatelessWidget {
   final _RemedialPlan plan;
 
@@ -976,117 +1270,356 @@ class _PlanCard extends StatelessWidget {
     final student = plan.student;
     final level = student.progress.currentLevel;
     final isWeak = level == AdaptiveLevel.weak;
-    final color = isWeak ? OakColors.coral : const Color(0xFFB98A00);
-    final guidance = isWeak
-        ? 'ابدأ بالأنشطة في المستوى السهل مع جلسات قصيرة، وامدح كل محاولة '
-              'ناجحة بإرسال النجوم لتعزيز ثقته.'
-        : 'ثبّت مهاراته بالمستوى المتوسط، وعند حصوله على ٣ نجوم مرتين '
-              'متتاليتين جرّب معه المستوى المتقدم.';
+    final color = isWeak ? OakColors.coral : const Color(0xFFD97706);
+    final headerGradient = isWeak
+        ? const [OakColors.coral, Color(0xFFF6A6A4)]
+        : const [Color(0xFFD97706), Color(0xFFF6B93B)];
+    final steps = isWeak
+        ? const [
+            'يبدأ بالأنشطة المقترحة في المستوى السهل بجلسات قصيرة (10–15 دقيقة).',
+            'كرر النشاط الذي أخفق فيه حتى يحصل على نجمتين على الأقل.',
+            'أرسل له نجوم تشجيع بعد كل محاولة ناجحة لتعزيز ثقته.',
+            'أعد امتحان تحديد المستوى بعد أسبوعين لقياس التحسن.',
+          ]
+        : const [
+            'يثبّت مهاراته بالأنشطة المقترحة في المستوى المتوسط.',
+            'ركّز على الوحدات التي يتعثر فيها قبل الانتقال لوحدات جديدة.',
+            'عند حصوله على ٣ نجوم مرتين متتاليتين جرّب معه المستوى المتقدم.',
+            'تابع تقدمه أسبوعياً من تبويب «الطلاب».',
+          ];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                student.profile.displayAvatar,
-                style: const TextStyle(fontSize: 22),
+          // ── ترويسة بلون المستوى ────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: headerGradient),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  student.profile.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'مستوى ${level.labelAr}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (!student.progress.placementDone)
-            Text(
-              '⏳ لم يؤدِّ امتحان تحديد المستوى بعد — شجّعه على إنجازه أولاً.',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-                height: 1.6,
-              ),
-            )
-          else if (plan.weakUnitTitles.isNotEmpty)
-            Text(
-              '📉 يواجه صعوبة في: ${plan.weakUnitTitles.join('، ')}',
-              style: const TextStyle(fontSize: 12, height: 1.6),
             ),
-          const SizedBox(height: 8),
-          const Text(
-            'أنشطة مقترحة:',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final activity in plan.suggestedActivities)
+            child: Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+                  width: 50,
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
                   ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    student.profile.displayAvatar,
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        student.profile.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          isWeak
+                              ? 'مستوى ضعيف — أولوية عالية'
+                              : 'مستوى متوسط — يحتاج تثبيتاً',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 52,
+                  height: 52,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CircularProgressIndicator(
+                        value: student.growthPercent / 100,
+                        strokeWidth: 5,
+                        strokeCap: StrokeCap.round,
+                        backgroundColor: Colors.white.withValues(alpha: 0.25),
+                        valueColor: const AlwaysStoppedAnimation(Colors.white),
+                      ),
+                      Center(
+                        child: Text(
+                          '${student.growthPercent.round()}%',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!student.progress.placementDone)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF9E7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Text(
+                      '⏳ لم يؤدِّ امتحان تحديد المستوى بعد — شجّعه على '
+                      'إنجازه أولاً لتصبح الخطة أدق.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                        height: 1.6,
+                      ),
+                    ),
+                  )
+                else if (plan.weakUnitTitles.isNotEmpty) ...[
+                  const _PlanSectionTitle(
+                    emoji: '📉',
+                    title: 'نقاط الضعف المرصودة',
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final title in plan.weakUnitTitles)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: color.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                const _PlanSectionTitle(emoji: '🎮', title: 'الأنشطة المقترحة'),
+                const SizedBox(height: 8),
+                for (final activity in plan.suggestedActivities)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6FBF0),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: OakColors.primary.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: OakColors.secondary),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            activity.emoji,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                activity.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Text(
+                                findGameUnit(activity.unitKey)?.title ?? '',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isWeak
+                                ? const Color(0xFFF0FDF4)
+                                : const Color(0xFFFEF9E7),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            isWeak ? 'مستوى سهل' : 'مستوى متوسط',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: isWeak
+                                  ? const Color(0xFF15803D)
+                                  : const Color(0xFFA16207),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 6),
+                const _PlanSectionTitle(emoji: '🗺️', title: 'خطوات الخطة'),
+                const SizedBox(height: 8),
+                for (final (index, step) in steps.indexed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            step,
+                            style: const TextStyle(fontSize: 12, height: 1.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: OakColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: OakColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: OakColors.primary.withValues(alpha: 0.25),
+                    ),
                   ),
                   child: Text(
-                    '${activity.emoji} ${activity.name}',
+                    isWeak
+                        ? '💡 نصيحة نوري: الجلسات القصيرة المتكررة أفضل من جلسة '
+                              'طويلة واحدة — والثناء على المحاولة أهم من النتيجة.'
+                        : '💡 نصيحة نوري: الطالب المتوسط يحتاج تحدياً تدريجياً — '
+                              'لا تستعجل المستوى المتقدم قبل تثبيت الأساسيات.',
                     style: const TextStyle(
                       fontSize: 11.5,
+                      height: 1.7,
+                      color: OakColors.leafDark,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '💡 $guidance',
-            style: TextStyle(
-              fontSize: 11.5,
-              color: Colors.grey.shade700,
-              height: 1.7,
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PlanSectionTitle extends StatelessWidget {
+  final String emoji;
+  final String title;
+
+  const _PlanSectionTitle({required this.emoji, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 15)),
+        const SizedBox(width: 6),
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+        ),
+      ],
     );
   }
 }

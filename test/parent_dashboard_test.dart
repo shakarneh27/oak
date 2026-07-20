@@ -92,7 +92,9 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    expect(find.text('سارة أحمد'), findsOneWidget);
+    // app bar + the new "بيانات ابني" card both show the child's name
+    expect(find.text('سارة أحمد'), findsNWidgets(2));
+    expect(find.text('بيانات ابني'), findsOneWidget);
     expect(find.text('شجرة سارة'), findsOneWidget);
     expect(find.text('45%'), findsOneWidget);
     expect(find.text('نجوم'), findsOneWidget);

@@ -53,12 +53,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         if (profile.role == UserRole.student) {
           final progress = await client
               .from('student_progress')
-              .select('current_level')
+              .select('placement_done')
               .eq('student_id', profile.id)
               .maybeSingle();
-          final hasDiagnostic =
-              progress != null; // row exists once created at sign-up
-          if (!hasDiagnostic) return '/diagnostic';
+          final placementDone = progress?['placement_done'] == true;
+          if (!placementDone) return '/diagnostic';
         }
         return _homeRouteFor(profile.role);
       }

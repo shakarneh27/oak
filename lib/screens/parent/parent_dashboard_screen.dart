@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/adaptive_level.dart';
 import '../../models/app_user.dart';
 import '../../providers/core_providers.dart';
 import '../../providers/parent_providers.dart';
@@ -265,6 +266,7 @@ class _OverviewTab extends ConsumerWidget {
     final topics =
         ref.watch(childTopicsProvider).valueOrNull ??
         (strong: const <String>[], weak: const <String>[]);
+    final teacher = ref.watch(childTeacherProvider).valueOrNull;
 
     final firstName = child.profile.name.split(' ').first;
     final growth = child.growthPercent.round();
@@ -275,6 +277,8 @@ class _OverviewTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
+        _ChildInfoCard(child: child, teacher: teacher),
+        const SizedBox(height: AppSpacing.sm),
         _SoftCard(
           gradient: const [Color(0xFFF0F9E8), Color(0xFFE8F5D8)],
           child: Column(
@@ -587,6 +591,160 @@ class _OverviewTab extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
       ],
+    );
+  }
+}
+
+/// «بيانات ابني» — بطاقة تعريف كاملة بالطفل: صورته واسمه وصفه ومعلمه
+/// ومستواه التكيفي الناتج عن امتحان تحديد المستوى.
+class _ChildInfoCard extends StatelessWidget {
+  final ParentChild child;
+  final AppUser? teacher;
+
+  const _ChildInfoCard({required this.child, required this.teacher});
+
+  @override
+  Widget build(BuildContext context) {
+    final level = child.progress.currentLevel;
+    final placementDone = child.progress.placementDone;
+    final levelColor = switch (level) {
+      AdaptiveLevel.weak => OakColors.coral,
+      AdaptiveLevel.medium => const Color(0xFFB98A00),
+      AdaptiveLevel.advanced => OakColors.leafDark,
+    };
+
+    return _SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: ParentPalette.orange.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  child.profile.displayAvatar,
+                  style: const TextStyle(fontSize: 26),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'بيانات ابني',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: ParentPalette.orangeDeep,
+                      ),
+                    ),
+                    Text(
+                      child.profile.name,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        color: OakColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: levelColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  placementDone ? 'مستوى ${level.labelAr}' : 'لم يُقيَّم بعد',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: placementDone ? levelColor : Colors.grey.shade500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _InfoChip(
+                emoji: '🏫',
+                label: child.profile.classroom ?? 'صف غير محدد',
+              ),
+              _InfoChip(
+                emoji: '🧑‍🏫',
+                label: teacher != null
+                    ? 'المعلم: ${teacher!.name}'
+                    : 'لا معلم مرتبط بعد',
+              ),
+              _InfoChip(
+                emoji: '🏅',
+                label: '${child.progress.badgesUnlocked.length} شارة',
+              ),
+              _InfoChip(
+                emoji: placementDone ? '✅' : '⏳',
+                label: placementDone
+                    ? 'أنجز امتحان تحديد المستوى'
+                    : 'امتحان المستوى قيد الانتظار',
+              ),
+            ],
+          ),
+          if (!placementDone) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'شجّعوه على إنجاز امتحان تحديد المستوى عند دخوله القادم ليحصل '
+              'على أنشطة تناسب مستواه تماماً.',
+              style: TextStyle(
+                fontSize: 11.5,
+                color: Colors.grey.shade600,
+                height: 1.6,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final String emoji;
+  final String label;
+
+  const _InfoChip({required this.emoji, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Text(
+        '$emoji $label',
+        style: const TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: OakColors.ink,
+        ),
+      ),
     );
   }
 }

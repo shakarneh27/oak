@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../data/game_content.dart';
+import '../../models/adaptive_level.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/core_providers.dart';
 import '../../providers/data_providers.dart';
@@ -9,6 +11,7 @@ import '../../providers/parent_providers.dart';
 import '../../providers/teacher_providers.dart';
 import '../../services/message_service.dart';
 import '../../widgets/oak_tree.dart';
+import '../games/engine/game_models.dart';
 
 /// لوحة المعلم — على نمط TeacherDashboardPage المرجعي: نظرة عامة على
 /// الصف، قائمة الطلاب مع بطاقة تفصيلية وإرسال نجوم، تنبيهات الخطة
@@ -97,8 +100,8 @@ class TeacherDashboardScreen extends ConsumerWidget {
                 text: 'الطلاب',
               ),
               const Tab(
-                icon: Icon(Icons.notifications_active_outlined, size: 18),
-                text: 'تنبيهات',
+                icon: Icon(Icons.healing_outlined, size: 18),
+                text: 'الخطة العلاجية',
               ),
               Tab(
                 icon: Badge(
@@ -118,7 +121,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
               children: [
                 _OverviewTab(students: students),
                 _StudentsTab(students: students),
-                const _AlertsTab(),
+                _RemedialPlanTab(students: students),
                 _MessagesTab(messages: messages, myId: myId),
               ],
             ),
@@ -431,6 +434,55 @@ class _StudentSheetState extends ConsumerState<_StudentSheet> {
   int _stars = 1;
   bool _sent = false;
   String? _error;
+  final _parentEmailController = TextEditingController();
+  bool _linking = false;
+  String? _linkMessage;
+  bool _linkSuccess = false;
+
+  @override
+  void dispose() {
+    _parentEmailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _linkParent() async {
+    final email = _parentEmailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() {
+        _linkSuccess = false;
+        _linkMessage = 'أدخل بريداً إلكترونياً صحيحاً لولي الأمر';
+      });
+      return;
+    }
+    setState(() => _linking = true);
+    try {
+      final result = await ref.read(linkParentProvider)(
+        email,
+        widget.student.profile.id,
+      );
+      setState(() {
+        _linkSuccess = result == 'ok';
+        _linkMessage = switch (result) {
+          'ok' => 'تم ربط ولي الأمر بنجاح ✅ سيرى بيانات ابنه فوراً',
+          'parent_not_found' =>
+            'لا يوجد حساب «ولي أمر» بهذا البريد — اطلب منه إنشاء حساب أولاً',
+          'not_teacher' => 'هذا الطالب ليس في صفوفك',
+          _ => 'تعذر الربط — حاول مرة أخرى',
+        };
+      });
+      if (_linkSuccess) {
+        ref.read(soundServiceProvider).correct();
+        ref.invalidate(linkedParentStudentIdsProvider);
+      }
+    } catch (_) {
+      setState(() {
+        _linkSuccess = false;
+        _linkMessage = 'تعذر الربط — تحقق من الاتصال';
+      });
+    } finally {
+      setState(() => _linking = false);
+    }
+  }
 
   Future<void> _send() async {
     try {
@@ -457,10 +509,11 @@ class _StudentSheetState extends ConsumerState<_StudentSheet> {
         top: 20,
         bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Row(
             children: [
               Container(
@@ -642,53 +695,398 @@ class _StudentSheetState extends ConsumerState<_StudentSheet> {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          _buildParentLinkCard(),
+        ],
+        ),
+      ),
+    );
+  }
+
+  /// ربط ولي الأمر: يُدخل المعلم بريد ولي الأمر فيرتبط حسابه بالطالب
+  /// عبر RPC آمنة، فيرى وليُّ الأمر بيانات ابنه فوراً.
+  Widget _buildParentLinkCard() {
+    final linkedIds =
+        ref.watch(linkedParentStudentIdsProvider).valueOrNull ??
+        const <String>{};
+    final alreadyLinked = linkedIds.contains(widget.student.profile.id);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBFDBFE)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('👨‍👩‍👧', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  'ربط ولي الأمر',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                ),
+              ),
+              if (alreadyLinked)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22C55E).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'مرتبط ✓',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF15803D),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            alreadyLinked
+                ? 'لهذا الطالب ولي أمر مرتبط بالفعل، ويمكنك ربط ولي أمر إضافي.'
+                : 'أدخل البريد الإلكتروني لحساب ولي الأمر ليتابع تقدم ابنه.',
+            style: TextStyle(
+              fontSize: 11.5,
+              color: Colors.grey.shade600,
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _parentEmailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textDirection: TextDirection.ltr,
+                  decoration: InputDecoration(
+                    hintText: 'parent@example.com',
+                    isDense: true,
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: OakColors.accentBlue,
+                ),
+                onPressed: _linking ? null : _linkParent,
+                icon: _linking
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.link, size: 16),
+                label: const Text('ربط'),
+              ),
+            ],
+          ),
+          if (_linkMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                _linkMessage!,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 1.6,
+                  color: _linkSuccess
+                      ? const Color(0xFF15803D)
+                      : OakColors.coral,
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-// ─────────────────────────── التنبيهات ───────────────────────────
+// ─────────────────────── الخطة العلاجية ───────────────────────
 
-class _AlertsTab extends ConsumerWidget {
-  const _AlertsTab();
+/// خطة علاجية مقترحة لطالب ضعيف أو متوسط: نقاط الضعف المرصودة من
+/// جلسات اللعب، وأنشطة مقترحة تبدأ من وحداته الأضعف.
+class _RemedialPlan {
+  final TeacherStudent student;
+  final List<String> weakUnitTitles;
+  final List<Activity> suggestedActivities;
+
+  const _RemedialPlan({
+    required this.student,
+    required this.weakUnitTitles,
+    required this.suggestedActivities,
+  });
+}
+
+class _RemedialPlanTab extends ConsumerWidget {
+  final List<TeacherStudent> students;
+
+  const _RemedialPlanTab({required this.students});
+
+  /// Builds the plan client-side from the RLS-scoped session history:
+  /// failed / struggling sessions mark a unit as weak, and the plan
+  /// suggests the first activities of those units (or the syllabus start
+  /// when there is no history yet).
+  _RemedialPlan _planFor(
+    TeacherStudent student,
+    List<Map<String, dynamic>> sessions,
+  ) {
+    final weakUnitKeys = <String>{};
+    for (final row in sessions) {
+      if (row['student_id'] != student.profile.id) continue;
+      final struggled =
+          row['status'] == 'failed' ||
+          ((row['consecutive_fails'] as num?) ?? 0) >= 2;
+      if (!struggled) continue;
+      final activity = findActivity(row['game_key']?.toString() ?? '');
+      if (activity != null) weakUnitKeys.add(activity.unitKey);
+    }
+
+    final sourceUnits = weakUnitKeys.isEmpty
+        ? kGameUnits.take(2).toList()
+        : [
+            for (final key in weakUnitKeys)
+              if (findGameUnit(key) != null) findGameUnit(key)!,
+          ];
+    final suggestions = <Activity>[
+      for (final unit in sourceUnits) ...unit.activities.take(2),
+    ].take(3).toList();
+
+    return _RemedialPlan(
+      student: student,
+      weakUnitTitles: [
+        for (final key in weakUnitKeys) findGameUnit(key)?.title ?? key,
+      ],
+      suggestedActivities: suggestions,
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final remedialAsync = ref.watch(teacherRemedialEventsProvider);
-    return remedialAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('تعذر التحميل: $e')),
-      data: (rows) => rows.isEmpty
-          ? Center(
+    final sessions =
+        ref.watch(teacherGameSessionsProvider).valueOrNull ??
+        const <Map<String, dynamic>>[];
+    final alerts =
+        ref.watch(teacherRemedialEventsProvider).valueOrNull ??
+        const <Map<String, dynamic>>[];
+
+    final needsPlan =
+        students
+            .where((s) => s.progress.currentLevel != AdaptiveLevel.advanced)
+            .toList()
+          ..sort(
+            (a, b) => a.progress.currentLevel.index.compareTo(
+              b.progress.currentLevel.index,
+            ),
+          );
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: OakColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Row(
+            children: [
+              Text('💊', style: TextStyle(fontSize: 24)),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'خطط علاجية مقترحة للطلاب الضعفاء والمتوسطين، مبنية على '
+                  'نتيجة امتحان تحديد المستوى وأداء الطالب في الأنشطة.',
+                  style: TextStyle(fontSize: 12, height: 1.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (needsPlan.isEmpty)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
               child: Text(
-                'لا تنبيهات حالياً 🎉',
-                style: TextStyle(color: Colors.grey.shade500),
+                'كل طلابك في المستوى المتقدم — لا حاجة لخطط علاجية حالياً 🎉',
+                style: TextStyle(color: Colors.grey.shade600, height: 1.7),
+              ),
+            ),
+          )
+        else
+          for (final student in needsPlan)
+            _PlanCard(plan: _planFor(student, sessions)),
+        if (alerts.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const Text(
+            'أحدث التنبيهات',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+          ),
+          const SizedBox(height: 8),
+          for (final row in alerts.reversed.take(10))
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.priority_high, color: Colors.orange),
+                title: Text(
+                  row['action_taken']?.toString() ?? '',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                subtitle: Text(row['trigger_condition']?.toString() ?? ''),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _PlanCard extends StatelessWidget {
+  final _RemedialPlan plan;
+
+  const _PlanCard({required this.plan});
+
+  @override
+  Widget build(BuildContext context) {
+    final student = plan.student;
+    final level = student.progress.currentLevel;
+    final isWeak = level == AdaptiveLevel.weak;
+    final color = isWeak ? OakColors.coral : const Color(0xFFB98A00);
+    final guidance = isWeak
+        ? 'ابدأ بالأنشطة في المستوى السهل مع جلسات قصيرة، وامدح كل محاولة '
+              'ناجحة بإرسال النجوم لتعزيز ثقته.'
+        : 'ثبّت مهاراته بالمستوى المتوسط، وعند حصوله على ٣ نجوم مرتين '
+              'متتاليتين جرّب معه المستوى المتقدم.';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                student.profile.displayAvatar,
+                style: const TextStyle(fontSize: 22),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  student.profile.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'مستوى ${level.labelAr}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (!student.progress.placementDone)
+            Text(
+              '⏳ لم يؤدِّ امتحان تحديد المستوى بعد — شجّعه على إنجازه أولاً.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                height: 1.6,
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: rows.length,
-              itemBuilder: (context, index) {
-                final row = rows[rows.length - 1 - index];
-                return Card(
-                  child: ListTile(
-                    leading: const Icon(
-                      Icons.priority_high,
-                      color: Colors.orange,
-                    ),
-                    title: Text(
-                      row['action_taken']?.toString() ?? '',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                    subtitle: Text(row['trigger_condition']?.toString() ?? ''),
-                  ),
-                );
-              },
+          else if (plan.weakUnitTitles.isNotEmpty)
+            Text(
+              '📉 يواجه صعوبة في: ${plan.weakUnitTitles.join('، ')}',
+              style: const TextStyle(fontSize: 12, height: 1.6),
             ),
+          const SizedBox(height: 8),
+          const Text(
+            'أنشطة مقترحة:',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final activity in plan.suggestedActivities)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: OakColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${activity.emoji} ${activity.name}',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '💡 $guidance',
+            style: TextStyle(
+              fontSize: 11.5,
+              color: Colors.grey.shade700,
+              height: 1.7,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../models/adaptive_level.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/core_providers.dart';
 import '../../providers/data_providers.dart';
@@ -186,6 +187,16 @@ class StudentDashboardScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
+                // adaptive level + placement retake
+                _LevelCard(
+                  level: progress?.currentLevel ?? AdaptiveLevel.weak,
+                  placementDone: progress?.placementDone ?? false,
+                  onRetake: () {
+                    ref.read(soundServiceProvider).click();
+                    context.push('/diagnostic');
+                  },
+                ),
+                const SizedBox(height: 8),
                 // daily quest
                 Material(
                   color: Colors.white,
@@ -318,6 +329,142 @@ class StudentDashboardScreen extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// بطاقة «مستواي» — تعرض المستوى التكيفي الناتج عن امتحان تحديد المستوى
+/// مع زر إعادة الامتحان، أو دعوة بارزة لأدائه إن لم يُنجَز بعد.
+class _LevelCard extends StatelessWidget {
+  final AdaptiveLevel level;
+  final bool placementDone;
+  final VoidCallback onRetake;
+
+  const _LevelCard({
+    required this.level,
+    required this.placementDone,
+    required this.onRetake,
+  });
+
+  (Color, String, String) get _style => switch (level) {
+    AdaptiveLevel.weak => (
+      OakColors.coral,
+      '🌱',
+      'سنتدرب معاً على أنشطة سهلة حتى تقوى!',
+    ),
+    AdaptiveLevel.medium => (
+      const Color(0xFFB98A00),
+      '🌿',
+      'أنت في الطريق الصحيح، واصل التقدم!',
+    ),
+    AdaptiveLevel.advanced => (
+      OakColors.leafDark,
+      '🌳',
+      'رائع! ستحصل على تحديات متقدمة تناسبك.',
+    ),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    if (!placementDone) {
+      return Material(
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onRetake,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [OakColors.coral, Color(0xFFF6A6A4)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Row(
+              children: [
+                Text('🎯', style: TextStyle(fontSize: 30)),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'قِس مستواك أولاً!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        'أجب عن أسئلة قصيرة ليصمّم نوري رحلة تناسبك',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final (color, emoji, hint) = _style;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(emoji, style: const TextStyle(fontSize: 22)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'مستواك: ${level.labelAr}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  hint,
+                  style: const TextStyle(fontSize: 11.5, height: 1.4),
+                ),
+              ],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onRetake,
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text(
+              'أعد الاختبار',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -39,6 +39,29 @@ final teacherStudentsProvider = FutureProvider<List<TeacherStudent>>((
   ];
 });
 
+/// Which of my students already have a linked parent account — the
+/// `links_select_teacher` policy (migration 0007) makes these rows
+/// visible to the students' teacher.
+final linkedParentStudentIdsProvider = FutureProvider<Set<String>>((ref) async {
+  final client = ref.watch(supabaseClientProvider);
+  final rows = await client.from('parent_student_links').select('student_id');
+  return {for (final row in rows) row['student_id'] as String};
+});
+
+/// Links a parent account (looked up by email) to one of my students via
+/// the `link_parent_to_student` SECURITY DEFINER RPC.
+/// Returns 'ok' | 'parent_not_found' | 'not_teacher'.
+final linkParentProvider = Provider((ref) {
+  return (String parentEmail, String studentId) async {
+    final client = ref.read(supabaseClientProvider);
+    final result = await client.rpc<dynamic>(
+      'link_parent_to_student',
+      params: {'parent_email': parentEmail, 'target_student': studentId},
+    );
+    return result?.toString() ?? 'error';
+  };
+});
+
 /// Awards stars from the teacher: bumps the student's oak_leaves.
 /// (Requires the `progress_update_teacher` policy from migration 0005.)
 final awardStarsProvider = Provider((ref) {

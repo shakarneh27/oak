@@ -6,6 +6,7 @@ class StudentProgress {
   final int oakLeaves;
   final int treeGrowthStage;
   final List<String> badgesUnlocked;
+  final bool placementDone;
 
   const StudentProgress({
     required this.studentId,
@@ -13,6 +14,7 @@ class StudentProgress {
     required this.oakLeaves,
     required this.treeGrowthStage,
     required this.badgesUnlocked,
+    this.placementDone = false,
   });
 
   factory StudentProgress.initial(String studentId) => StudentProgress(
@@ -36,6 +38,7 @@ class StudentProgress {
               ?.map((e) => e.toString())
               .toList() ??
           const [],
+      placementDone: map['placement_done'] as bool? ?? false,
     );
   }
 }

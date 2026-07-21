@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../data/placement_questions.dart';
 import '../../models/adaptive_level.dart';
 import '../../providers/core_providers.dart';
@@ -10,7 +11,7 @@ import '../../providers/data_providers.dart';
 
 /// امتحان تحديد المستوى: 9 أسئلة علمية حقيقية متدرجة (سهل/متوسط/متقدم)
 /// بنقاط موزونة، تحدد مستوى الطالب التكيفي (ضعيف/متوسط/متقدم) وتحفظه في
-/// ملفه — مع إمكانية الإعادة لاحقاً من لوحته.
+/// ملفه — مع إمكانية الخروج في أي وقت والإعادة لاحقاً من لوحته.
 class DiagnosticTestScreen extends ConsumerStatefulWidget {
   const DiagnosticTestScreen({super.key});
 
@@ -85,10 +86,81 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
     }
   }
 
+  /// الخروج من الامتحان دون إكماله — يعود الطالب إلى لوحته ويمكنه إعادته
+  /// لاحقاً من بطاقة «قِس مستواك». نؤكّد فقط إن كان قد بدأ الإجابة.
+  Future<void> _exit() async {
+    ref.read(soundServiceProvider).click();
+    final started = _started && _resultLevel == null;
+    if (started) {
+      final leave = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('الخروج من الامتحان؟'),
+          content: const Text(
+            'لن تُحفظ إجاباتك الحالية، ويمكنك إعادة الامتحان في أي وقت من '
+            'صفحتك الرئيسية. هل تريد الخروج؟',
+            style: TextStyle(height: 1.7),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('متابعة الامتحان'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: OakColors.coral),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('خروج'),
+            ),
+          ],
+        ),
+      );
+      if (leave != true) return;
+    }
+    if (mounted) context.go('/dashboard');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('امتحان تحديد المستوى')),
+      backgroundColor: OakColors.cream,
+      appBar: AppBar(
+        foregroundColor: Colors.white,
+        backgroundColor: OakColors.forest,
+        surfaceTintColor: OakColors.forest,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'امتحان تحديد المستوى',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [OakColors.forest, OakColors.forestLight, Color(0xFF486E42)],
+            ),
+          ),
+        ),
+        actions: [
+          // زر الخروج من الامتحان — متاح في كل المراحل عدا شاشة النتيجة
+          if (_resultLevel == null && !_saving)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: TextButton.icon(
+                onPressed: _exit,
+                style: TextButton.styleFrom(foregroundColor: Colors.white),
+                icon: const Icon(Icons.close, size: 18),
+                label: const Text(
+                  'خروج',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+        ],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
@@ -111,46 +183,69 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
       children: [
         const SizedBox(height: 12),
         Center(
-          child: SvgPicture.asset('assets/images/nouri.svg',
-              width: 110, height: 110),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: const RadialGradient(
+                colors: [OakColors.leafLight, OakColors.cream],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: OakColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                ),
+              ],
+            ),
+            child: SvgPicture.asset('assets/images/nouri.svg',
+                width: 110, height: 110),
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         const Center(
           child: Text('مرحباً! أنا نوري 🐿️',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+              style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: OakColors.ink)),
         ),
         const SizedBox(height: 8),
         Center(
           child: Text(
             'سأطرح عليك 9 أسئلة ممتعة لأعرف من أين نبدأ رحلتنا.\nلا تقلق — لا يوجد رسوب هنا أبداً! 🌱',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade600, height: 1.8),
+            style: TextStyle(color: OakColors.ink.withValues(alpha: 0.7), height: 1.8),
           ),
         ),
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F9E8),
+            color: OakColors.leafLight.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: OakColors.primary.withValues(alpha: 0.4)),
           ),
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('📋 ماذا سيحدث؟',
-                  style: TextStyle(fontWeight: FontWeight.w900)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w900, color: OakColors.ink)),
               SizedBox(height: 8),
-              Text('• أسئلة متدرجة: سهلة ثم متوسطة ثم متقدمة',
-                  style: TextStyle(height: 1.8)),
-              Text('• حسب إجاباتك يتحدد مستوى الألعاب المناسب لك',
-                  style: TextStyle(height: 1.8)),
-              Text('• يمكنك إعادة الامتحان لاحقاً من صفحتك الرئيسية',
-                  style: TextStyle(height: 1.8)),
+              _IntroBullet(text: 'أسئلة متدرجة: سهلة ثم متوسطة ثم متقدمة'),
+              _IntroBullet(text: 'حسب إجاباتك يتحدد مستوى الألعاب المناسب لك'),
+              _IntroBullet(
+                  text: 'يمكنك الخروج أو إعادة الامتحان لاحقاً من صفحتك'),
             ],
           ),
         ),
         const SizedBox(height: 24),
         FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: OakColors.leafDark,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+          ),
           onPressed: () {
             ref.read(soundServiceProvider).click();
             setState(() => _started = true);
@@ -158,7 +253,16 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
           icon: const Icon(Icons.rocket_launch_outlined),
           label: const Padding(
             padding: EdgeInsets.symmetric(vertical: 4),
-            child: Text('ابدأ الامتحان'),
+            child: Text('ابدأ الامتحان',
+                style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Center(
+          child: TextButton(
+            onPressed: _exit,
+            style: TextButton.styleFrom(foregroundColor: OakColors.ink),
+            child: const Text('ربما لاحقاً — العودة إلى صفحتي'),
           ),
         ),
       ],
@@ -169,10 +273,10 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
   Widget _buildQuestion() {
     final question = _entry.question;
     final answered = _selected != null;
-    final difficultyLabel = switch (_entry.weight) {
-      1 => ('🟢', 'سهل'),
-      2 => ('🟡', 'متوسط'),
-      _ => ('🔴', 'متقدم'),
+    final (diffEmoji, diffLabel, diffColor) = switch (_entry.weight) {
+      1 => ('🟢', 'سهل', OakColors.leafDark),
+      2 => ('🟡', 'متوسط', const Color(0xFFB98A00)),
+      _ => ('🔴', 'متقدم', OakColors.coral),
     };
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -182,32 +286,54 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
           children: [
             Text('سؤال ${_index + 1}/${kPlacementQuestions.length}',
                 style: TextStyle(
-                    fontWeight: FontWeight.w700, color: Colors.grey.shade500)),
+                    fontWeight: FontWeight.w800,
+                    color: OakColors.ink.withValues(alpha: 0.6))),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: diffColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: diffColor.withValues(alpha: 0.4)),
               ),
-              child: Text('${difficultyLabel.$1} ${difficultyLabel.$2}',
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w800)),
+              child: Text('$diffEmoji $diffLabel',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: diffColor)),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
-            value: _index / kPlacementQuestions.length,
-            minHeight: 8,
-            backgroundColor: Colors.grey.shade100,
+            value: (_index + (answered ? 1 : 0)) / kPlacementQuestions.length,
+            minHeight: 9,
+            backgroundColor: OakColors.secondary,
+            valueColor: const AlwaysStoppedAnimation(OakColors.leafDark),
           ),
         ),
         const SizedBox(height: 20),
-        Text(question.text,
-            style: const TextStyle(
-                fontSize: 19, fontWeight: FontWeight.w900, height: 1.6)),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: OakColors.primary.withValues(alpha: 0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Text(question.text,
+              style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  height: 1.6,
+                  color: OakColors.ink)),
+        ),
         const SizedBox(height: 16),
         for (var i = 0; i < question.options.length; i++)
           Padding(
@@ -216,10 +342,10 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
               color: !answered
                   ? Colors.white
                   : i == question.correct
-                      ? const Color(0xFFF0FDF4)
+                      ? OakColors.leafLight.withValues(alpha: 0.6)
                       : i == _selected
-                          ? const Color(0xFFFEF2F2)
-                          : Colors.grey.shade50,
+                          ? OakColors.coral.withValues(alpha: 0.12)
+                          : Colors.white,
               borderRadius: BorderRadius.circular(14),
               child: InkWell(
                 onTap: answered ? null : () => _answer(i),
@@ -231,12 +357,12 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: !answered
-                          ? Colors.grey.shade200
+                          ? OakColors.secondary
                           : i == question.correct
-                              ? const Color(0xFF86EFAC)
+                              ? OakColors.leafDark
                               : i == _selected
-                                  ? const Color(0xFFFCA5A5)
-                                  : Colors.grey.shade100,
+                                  ? OakColors.coral
+                                  : OakColors.secondary,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(14),
@@ -246,7 +372,9 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
                       Expanded(
                         child: Text(question.options[i],
                             style: const TextStyle(
-                                fontWeight: FontWeight.w700, height: 1.5)),
+                                fontWeight: FontWeight.w700,
+                                height: 1.5,
+                                color: OakColors.ink)),
                       ),
                       if (answered && i == question.correct) const Text('✅'),
                       if (answered &&
@@ -264,20 +392,43 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: _selected == question.correct
-                  ? const Color(0xFFF0FDF4)
-                  : const Color(0xFFFFF7ED),
+                  ? OakColors.leafLight.withValues(alpha: 0.5)
+                  : OakColors.gold.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _selected == question.correct
+                    ? OakColors.leafDark.withValues(alpha: 0.4)
+                    : OakColors.gold.withValues(alpha: 0.6),
+              ),
             ),
-            child: Text(question.explanation,
-                style:
-                    const TextStyle(height: 1.7, fontWeight: FontWeight.w600)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_selected == question.correct ? '🌟' : '💡'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(question.explanation,
+                      style: const TextStyle(
+                          height: 1.7,
+                          fontWeight: FontWeight.w600,
+                          color: OakColors.ink)),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: OakColors.leafDark,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
             onPressed: _next,
-            child: Text(_index < kPlacementQuestions.length - 1
-                ? 'السؤال التالي ←'
-                : 'اعرض نتيجتي 🎯'),
+            child: Text(
+                _index < kPlacementQuestions.length - 1
+                    ? 'السؤال التالي ←'
+                    : 'اعرض نتيجتي 🎯',
+                style: const TextStyle(fontWeight: FontWeight.w900)),
           ),
         ],
       ],
@@ -287,43 +438,63 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
   // ── النتيجة ──────────────────────────────────────────────────────────
   Widget _buildResult() {
     final level = AdaptiveLevelX.fromString(_resultLevel!);
-    final (emoji, message) = switch (level) {
+    final (emoji, message, accent) = switch (level) {
       AdaptiveLevel.advanced => (
           '🏆',
-          'مستواك متقدم! ستبدأ بتحديات قوية تناسب ذكاءك.'
+          'مستواك متقدم! ستبدأ بتحديات قوية تناسب ذكاءك.',
+          OakColors.leafDark,
         ),
       AdaptiveLevel.medium => (
           '🌟',
-          'مستواك متوسط! ستبدأ بألعاب متوازنة وتتقدم بسرعة.'
+          'مستواك متوسط! ستبدأ بألعاب متوازنة وتتقدم بسرعة.',
+          const Color(0xFFB98A00),
         ),
       AdaptiveLevel.weak => (
           '🌱',
-          'سنبدأ معاً من الأساسيات خطوة بخطوة — وستتفاجأ بسرعة تقدمك!'
+          'سنبدأ معاً من الأساسيات خطوة بخطوة — وستتفاجأ بسرعة تقدمك!',
+          OakColors.coral,
         ),
     };
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
         const SizedBox(height: 20),
-        Center(child: Text(emoji, style: const TextStyle(fontSize: 64))),
-        const SizedBox(height: 10),
+        Center(
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [accent.withValues(alpha: 0.18), OakColors.cream],
+              ),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(emoji, style: const TextStyle(fontSize: 64)),
+          ),
+        ),
+        const SizedBox(height: 14),
         Center(
           child: Text('مستواك: ${level.labelAr}',
-              style:
-                  const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: accent)),
         ),
         const SizedBox(height: 6),
         Center(
           child: Text('النتيجة: $_score من $_maxScore نقطة',
               style: TextStyle(
-                  color: Colors.grey.shade500, fontWeight: FontWeight.w700)),
+                  color: OakColors.ink.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w700)),
         ),
         const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F9E8),
+            color: OakColors.leafLight.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: OakColors.primary.withValues(alpha: 0.4)),
           ),
           child: Row(
             children: [
@@ -333,13 +504,20 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
               Expanded(
                 child: Text(message,
                     style: const TextStyle(
-                        height: 1.7, fontWeight: FontWeight.w600)),
+                        height: 1.7,
+                        fontWeight: FontWeight.w600,
+                        color: OakColors.ink)),
               ),
             ],
           ),
         ),
         const SizedBox(height: 24),
         FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: OakColors.leafDark,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+          ),
           onPressed: () {
             ref.read(soundServiceProvider).click();
             context.go('/dashboard');
@@ -347,10 +525,38 @@ class _DiagnosticTestScreenState extends ConsumerState<DiagnosticTestScreen> {
           icon: const Icon(Icons.park_outlined),
           label: const Padding(
             padding: EdgeInsets.symmetric(vertical: 4),
-            child: Text('انطلق إلى شجرتك 🌳'),
+            child: Text('انطلق إلى شجرتك 🌳',
+                style: TextStyle(fontWeight: FontWeight.w900)),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _IntroBullet extends StatelessWidget {
+  final String text;
+
+  const _IntroBullet({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• ',
+              style: TextStyle(
+                  height: 1.6,
+                  fontWeight: FontWeight.w900,
+                  color: OakColors.leafDark)),
+          Expanded(
+            child: Text(text,
+                style: const TextStyle(height: 1.7, color: OakColors.ink)),
+          ),
+        ],
+      ),
     );
   }
 }

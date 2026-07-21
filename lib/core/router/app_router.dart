@@ -50,15 +50,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             .read(authServiceProvider)
             .loadCurrentProfile();
         if (profile == null) return '/login';
-        if (profile.role == UserRole.student) {
-          final progress = await client
-              .from('student_progress')
-              .select('placement_done')
-              .eq('student_id', profile.id)
-              .maybeSingle();
-          final placementDone = progress?['placement_done'] == true;
-          if (!placementDone) return '/diagnostic';
-        }
+        // Students land on their dashboard, which surfaces a prominent
+        // "قِس مستواك" call-to-action when the placement exam is still
+        // pending. The exam is never a forced trap: the student can take
+        // it, defer it, or exit it at any time, and every tab behaves the
+        // same way.
         return _homeRouteFor(profile.role);
       }
       return null;
